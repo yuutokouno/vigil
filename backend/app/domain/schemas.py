@@ -56,6 +56,7 @@ class BugCreate(BaseModel):
     assigned_to: str | None = None
     source: Source = Source.MANUAL
     sprint: str | None = None
+    milestone_id: str | None = None
 
 
 class BugUpdate(BaseModel):
@@ -67,6 +68,7 @@ class BugUpdate(BaseModel):
     category: Category | None = None
     assigned_to: str | None = None
     sprint: str | None = None
+    milestone_id: str | None = None
     closed_at: datetime | None = None
 
     model_config = ConfigDict(extra="allow")
@@ -88,6 +90,7 @@ class BugResponse(BaseModel):
     assigned_to: str | None
     source: Source
     sprint: str | None
+    milestone_id: str | None
     slack_message_url: str | None
     github_issue_url: str | None
     created_at: datetime

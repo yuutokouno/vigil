@@ -145,6 +145,7 @@ class PostgresBugRepository(BugRepository):
             assigned_to=bug.assigned_to,
             source=bug.source,
             sprint=bug.sprint,
+            milestone_id=str(bug.milestone_id) if bug.milestone_id else None,
             slack_message_url=bug.slack_message_url,
             github_issue_url=bug.github_issue_url,
             created_at=bug.created_at,

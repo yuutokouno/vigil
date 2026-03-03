@@ -77,6 +77,7 @@ export type Bug = {
   assigned_to: string | null;
   source: string;
   sprint: string | null;
+  milestone_id: string | null;
   slack_message_url: string | null;
   github_issue_url: string | null;
   created_at: string;
@@ -97,6 +98,7 @@ export type BugCreate = {
   reported_by?: string | null;
   assigned_to?: string | null;
   sprint?: string | null;
+  milestone_id?: string | null;
 };
 
 export type BugUpdate = {
@@ -108,6 +110,7 @@ export type BugUpdate = {
   category?: Category | null;
   assigned_to?: string | null;
   sprint?: string | null;
+  milestone_id?: string | null;
 };
 
 export type BugListResponse = {

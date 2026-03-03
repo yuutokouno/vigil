@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Button,
@@ -24,6 +24,8 @@ import {
   type Priority,
   type Category,
 } from "@/src/entities/bug/model/types";
+import { listMilestones } from "@/src/entities/milestone/api/milestone-api";
+import type { Milestone } from "@/src/entities/milestone/model/types";
 import { useCreateBug } from "../model/use-create-bug";
 
 export function BugForm() {
@@ -40,6 +42,14 @@ export function BugForm() {
   const [category, setCategory] = useState<Category | "">("");
   const [reportedBy, setReportedBy] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
+  const [milestoneId, setMilestoneId] = useState("");
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+
+  useEffect(() => {
+    listMilestones()
+      .then((data) => setMilestones(data.filter((m) => m.status === "active")))
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +65,7 @@ export function BugForm() {
       category: category || null,
       reported_by: reportedBy || null,
       assigned_to: assignedTo || null,
+      milestone_id: milestoneId || null,
     };
     submit(data);
   };
@@ -199,6 +210,24 @@ export function BugForm() {
           />
         </div>
       </div>
+
+      {milestones.length > 0 && (
+        <div className="space-y-2">
+          <Label>マイルストーン</Label>
+          <Select value={milestoneId} onValueChange={setMilestoneId}>
+            <SelectTrigger>
+              <SelectValue placeholder="選択..." />
+            </SelectTrigger>
+            <SelectContent>
+              {milestones.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="flex justify-end gap-3">
         <Button variant="outline" asChild>
