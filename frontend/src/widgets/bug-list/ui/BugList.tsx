@@ -77,7 +77,14 @@ export function BugList({ initialFilters }: BugListProps) {
         <p className="py-8 text-center text-muted-foreground">読み込み中...</p>
       ) : (
         <>
-          <BugTable bugs={bugs} />
+          <BugTable
+            bugs={bugs}
+            onBugUpdated={(updatedBug) => {
+              setBugs((prev) =>
+                prev.map((b) => (b.id === updatedBug.id ? updatedBug : b))
+              );
+            }}
+          />
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
