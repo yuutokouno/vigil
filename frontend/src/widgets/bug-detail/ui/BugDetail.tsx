@@ -1,0 +1,145 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/src/shared/ui";
+import { StatusBadge } from "@/src/entities/bug/ui/StatusBadge";
+import { SeverityBadge } from "@/src/entities/bug/ui/SeverityBadge";
+import { StatusSelect } from "@/src/features/update-status/ui/StatusSelect";
+import type { Bug } from "@/src/entities/bug/model/types";
+import { CATEGORY_LABELS, type Category } from "@/src/entities/bug/model/types";
+
+type BugDetailProps = {
+  bug: Bug;
+};
+
+export function BugDetail({ bug: initialBug }: BugDetailProps) {
+  const [bug, setBug] = useState(initialBug);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <SeverityBadge severity={bug.severity} />
+            <StatusBadge status={bug.status} />
+            <span className="text-sm text-muted-foreground">{bug.priority}</span>
+          </div>
+          <h1 className="text-2xl font-bold">{bug.title}</h1>
+        </div>
+        <Button variant="outline" asChild>
+          <Link href="/">一覧に戻る</Link>
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">ステータス変更</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <StatusSelect bug={bug} onUpdated={setBug} />
+        </CardContent>
+      </Card>
+
+      {bug.description && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">説明</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap">{bug.description}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {(bug.steps_to_reproduce || bug.expected_behavior || bug.actual_behavior) && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {bug.steps_to_reproduce && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">再現手順</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-wrap">{bug.steps_to_reproduce}</p>
+              </CardContent>
+            </Card>
+          )}
+          {bug.expected_behavior && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">期待する挙動</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-wrap">{bug.expected_behavior}</p>
+              </CardContent>
+            </Card>
+          )}
+          {bug.actual_behavior && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">実際の挙動</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-wrap">{bug.actual_behavior}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">詳細情報</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:grid-cols-4">
+            <div>
+              <dt className="text-muted-foreground">報告者</dt>
+              <dd className="font-medium">{bug.reported_by ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">担当者</dt>
+              <dd className="font-medium">{bug.assigned_to ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">カテゴリ</dt>
+              <dd className="font-medium">
+                {bug.category
+                  ? CATEGORY_LABELS[bug.category as Category] ?? bug.category
+                  : "-"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">環境</dt>
+              <dd className="font-medium">{bug.environment ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">登録日</dt>
+              <dd className="font-medium">
+                {new Date(bug.created_at).toLocaleString("ja-JP")}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">更新日</dt>
+              <dd className="font-medium">
+                {new Date(bug.updated_at).toLocaleString("ja-JP")}
+              </dd>
+            </div>
+            {bug.closed_at && (
+              <div>
+                <dt className="text-muted-foreground">クローズ日</dt>
+                <dd className="font-medium">
+                  {new Date(bug.closed_at).toLocaleString("ja-JP")}
+                </dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-muted-foreground">ソース</dt>
+              <dd className="font-medium">{bug.source}</dd>
+            </div>
+          </dl>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
