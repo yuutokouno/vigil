@@ -73,6 +73,7 @@ vigil/
 │   └── Dockerfile
 │
 ├── frontend/
+│   ├── Dockerfile
 │   ├── app/                            # Next.js App Router（ルーティングのみ）
 │   │   ├── layout.tsx                  #   ルートレイアウト
 │   │   ├── page.tsx                    #   → pages/dashboard を呼ぶだけ
@@ -146,6 +147,8 @@ vigil/
 │   ├── package.json
 │   └── .env.local.example
 │
+├── docker-compose.yml              # 開発環境一発起動
+├── .env.example                    # 環境変数テンプレート
 └── README.md
 ```
 
@@ -460,6 +463,7 @@ class BugResponse(BaseModel):
 3. `.gitignore` を作成（Python + Node.js + 環境変数）
 4. 初回コミット `git commit -m "init: Vigil project setup"`
 5. 以降、各 Step 完了ごとにコミットする
+6. GitHub Projects でカンバンボードを作成し、Issueを登録
 
 #### .gitignore
 ```
@@ -486,7 +490,124 @@ node_modules/
 .DS_Store
 ```
 
-### Step 1: Backend セットアップ
+#### GitHub Projects セットアップ
+```bash
+# カンバンボードを作成
+gh project create --title "Vigil" --owner @me
+
+# Step ごとに Issue を作成
+gh issue create --title "Step 1: Docker 環境構築" \
+  --body "docker-compose.yml, Dockerfile (backend/frontend), PostgreSQL コンテナ" \
+  --label "setup"
+
+gh issue create --title "Step 2: Backend セットアップ" \
+  --body "SQLAlchemy モデル, Pydantic スキーマ, Alembic マイグレーション" \
+  --label "backend"
+
+gh issue create --title "Step 3: Backend API 実装" \
+  --body "Repository パターン (ABC → PostgreSQL), Usecase, Presentation (FastAPI Router)" \
+  --label "backend"
+
+gh issue create --title "Step 4: Frontend セットアップ" \
+  --body "Next.js (App Router), shadcn/ui, FSD レイヤー構成, API クライアント" \
+  --label "frontend"
+
+gh issue create --title "Step 5: Frontend 画面実装" \
+  --body "shared → entities → features → widgets → pages → app の順に積み上げ" \
+  --label "frontend"
+
+gh issue create --title "Step 6: 接続・動作確認" \
+  --body "docker compose up で全サービス起動、CRUD 疎通確認" \
+  --label "testing"
+```
+
+カンバンの列: `Todo` → `In Progress` → `Done`
+細かいタスクは各 Step を進めながら sub-issue として追加する。
+
+### Step 1: Docker 環境構築
+1. ルートに `docker-compose.yml` を作成
+2. `backend/Dockerfile` を作成
+3. `frontend/Dockerfile` を作成
+4. `.env.example` を作成
+5. `docker compose up` で全サービスが起動することを確認
+6. コミット `git commit -m "feat: Docker environment setup"`
+
+#### docker-compose.yml
+```yaml
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: vigil
+      POSTGRES_PASSWORD: vigil
+      POSTGRES_DB: vigil
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://vigil:vigil@db:5432/vigil
+      CORS_ORIGINS: http://localhost:3000
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+```
+
+#### backend/Dockerfile
+```dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+```
+
+#### frontend/Dockerfile
+```dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm install
+
+COPY . .
+
+CMD ["npm", "run", "dev"]
+```
+
+### Step 2: Backend セットアップ
 1. `backend/` ディレクトリを作成
 2. `requirements.txt` に依存パッケージを記述
 3. `app/config.py` で DATABASE_URL 等の環境変数を管理
@@ -495,14 +616,14 @@ node_modules/
 6. `app/domain/schemas.py` で Pydantic スキーマを定義
 7. Alembic を初期化してマイグレーションを作成
 
-### Step 2: Backend API 実装
+### Step 3: Backend API 実装
 1. `app/repository/base.py` で ABC リポジトリを定義
 2. `app/repository/postgres.py` で PostgreSQL 実装
 3. `app/usecase/bug_usecase.py` でビジネスロジック（ステータス遷移の制約等）
 4. `app/presentation/bugs.py` でエンドポイントを実装
 5. `app/main.py` で FastAPI アプリを組み立て（CORS設定含む）
 
-### Step 3: Frontend セットアップ
+### Step 4: Frontend セットアップ
 1. `npx create-next-app@latest frontend --typescript --tailwind --app --src-dir=false`
 2. shadcn/ui をインストール
 3. `src/` 配下に FSD レイヤーを作成（shared → entities → features → widgets）
@@ -510,7 +631,7 @@ node_modules/
 5. `src/entities/bug/model/types.ts` で Bug 型定義
 6. `src/entities/bug/api/bug-api.ts` で API クライアント関数
 
-### Step 4: Frontend 画面実装（FSD レイヤー順に積み上げる）
+### Step 5: Frontend 画面実装（FSD レイヤー順に積み上げる）
 1. **shared** — `src/shared/ui/` に shadcn/ui の re-export、`src/shared/api/client.ts`
 2. **entities/bug** — BugCard, BugTable, StatusBadge, SeverityBadge（表示のみ、操作なし）
 3. **features/create-bug** — BugForm + use-create-bug（フォーム送信）
@@ -524,9 +645,9 @@ node_modules/
 11. **pages/bug-detail** — BugDetail を配置
 12. **app/** — 各 page.tsx から pages レイヤーを呼ぶだけ（薄いルーティング層）
 
-### Step 5: 接続・動作確認
-1. Backend を uvicorn で起動
-2. Frontend を next dev で起動
+### Step 6: 接続・動作確認
+1. `docker compose up` で全サービス起動
+2. Frontend → Backend → DB の疎通確認
 3. CRUD が一通り動くことを確認
 
 ---
