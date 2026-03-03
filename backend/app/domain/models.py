@@ -28,6 +28,26 @@ class User(Base):
     )
 
 
+class Milestone(Base):
+    __tablename__ = "milestones"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text)
+    due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=False))
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="active"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
 class Bug(Base):
     __tablename__ = "bugs"
 
@@ -58,6 +78,11 @@ class Bug(Base):
     slack_message_url: Mapped[str | None] = mapped_column(String(500))
     github_issue_url: Mapped[str | None] = mapped_column(String(500))
     notion_page_id: Mapped[str | None] = mapped_column(String(100))
+
+    # Milestone
+    milestone_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("milestones.id"), nullable=True
+    )
 
     # Sprint management
     sprint: Mapped[str | None] = mapped_column(String(50))

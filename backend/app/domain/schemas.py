@@ -122,6 +122,39 @@ class BugStatsResponse(BaseModel):
     by_category: dict[str, int]
 
 
+class MilestoneStatus(str, Enum):
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class MilestoneCreate(BaseModel):
+    title: str
+    description: str | None = None
+    due_date: datetime | None = None
+
+
+class MilestoneUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    due_date: datetime | None = None
+    status: MilestoneStatus | None = None
+
+
+class MilestoneResponse(BaseModel):
+    id: str
+    title: str
+    description: str | None
+    due_date: datetime | None
+    status: MilestoneStatus
+    created_at: datetime
+    updated_at: datetime
+    total_bugs: int = 0
+    closed_bugs: int = 0
+
+    model_config = {"from_attributes": True}
+
+
 class UserResponse(BaseModel):
     id: str
     github_id: str
