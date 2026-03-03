@@ -120,3 +120,15 @@ class BugStatsResponse(BaseModel):
     by_status: dict[str, int]
     by_severity: dict[str, int]
     by_category: dict[str, int]
+
+
+class UserResponse(BaseModel):
+    id: str
+    github_id: str
+    name: str
+    email: str | None
+    avatar_url: str | None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
