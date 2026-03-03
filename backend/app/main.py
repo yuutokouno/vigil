@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.presentation.auth import router as auth_router
 from app.presentation.bugs import router as bugs_router
 
 app = FastAPI(title="Vigil", description="Bug tracking dashboard for archaive")
@@ -15,6 +16,7 @@ app.add_middleware(
 )
 
 
+app.include_router(auth_router)
 app.include_router(bugs_router)
 
 
