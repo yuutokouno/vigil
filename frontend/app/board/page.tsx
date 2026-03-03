@@ -1,6 +1,7 @@
 "use client";
 
 import { ViewToggle } from "@/src/features/view-toggle/ui/ViewToggle";
+import { KanbanBoard } from "@/src/widgets/kanban-board/ui/KanbanBoard";
 
 export default function BoardRoute() {
   return (
@@ -9,9 +10,7 @@ export default function BoardRoute() {
         <h1 className="text-2xl font-bold">Issues</h1>
         <ViewToggle />
       </div>
-      <p className="text-muted-foreground">
-        カンバンボードは Step 10 で実装します
-      </p>
+      <KanbanBoard />
     </div>
   );
 }
