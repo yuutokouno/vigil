@@ -25,7 +25,7 @@ export function BugDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl p-6">
+      <div className="mx-auto max-w-4xl">
         <p className="text-muted-foreground">読み込み中...</p>
       </div>
     );
@@ -33,14 +33,14 @@ export function BugDetailPage() {
 
   if (error || !bug) {
     return (
-      <div className="mx-auto max-w-4xl p-6">
+      <div className="mx-auto max-w-4xl">
         <p className="text-red-600">{error ?? "バグが見つかりませんでした"}</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
+    <div className="mx-auto max-w-4xl">
       <BugDetail bug={bug} />
     </div>
   );
