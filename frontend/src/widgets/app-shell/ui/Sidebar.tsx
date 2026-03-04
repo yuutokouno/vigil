@@ -7,16 +7,23 @@ import {
   Kanban,
   Milestone,
   Settings,
+  BarChart2,
   PanelLeftClose,
   PanelLeft,
+  Plus,
+  LogOut,
+  Github,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/src/shared/ui";
+import { useAuth } from "@/src/features/auth/model/use-auth";
+import { UserAvatar } from "@/src/entities/user/ui/UserAvatar";
 
 const NAV_ITEMS = [
   { href: "/", label: "Issues", icon: Bug },
   { href: "/board", label: "Board", icon: Kanban },
   { href: "/milestones", label: "Milestones", icon: Milestone },
+  { href: "/analytics", label: "Analytics", icon: BarChart2 },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
@@ -27,18 +34,19 @@ type SidebarProps = {
 
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const { user, isLoading, login, logout } = useAuth();
 
   return (
     <aside
       className={cn(
         "flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200",
-        isCollapsed ? "w-[60px]" : "w-[240px]"
+        isCollapsed ? "w-[52px]" : "w-[220px]"
       )}
     >
-      {/* Logo */}
-      <div className="flex h-14 items-center border-b border-sidebar-border px-4">
+      {/* Logo + collapse toggle */}
+      <div className="flex h-12 shrink-0 items-center border-b border-sidebar-border px-3">
         {!isCollapsed && (
-          <span className="text-lg font-bold text-sidebar-foreground">
+          <span className="mr-auto text-[13px] font-semibold tracking-widest text-foreground/90">
             VIGIL
           </span>
         )}
@@ -46,8 +54,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           variant="ghost"
           size="icon"
           className={cn(
-            "ml-auto h-8 w-8 text-sidebar-foreground",
-            isCollapsed && "mx-auto ml-0"
+            "h-7 w-7 text-muted-foreground hover:text-foreground",
+            isCollapsed && "mx-auto"
           )}
           onClick={onToggle}
         >
@@ -60,7 +68,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-2">
+      <nav className="flex-1 space-y-0.5 px-1.5 py-2">
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.href === "/"
@@ -72,11 +80,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] font-medium transition-colors",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                isCollapsed && "justify-center px-2"
+                  ? "border-l-2 border-primary bg-secondary pl-[6px] text-foreground"
+                  : "border-l-2 border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
+                isCollapsed && "justify-center border-l-0 px-2 pl-2"
               )}
             >
               <item.icon className="h-4 w-4 shrink-0" />
@@ -85,6 +93,63 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Footer: new bug + auth */}
+      <div className="shrink-0 border-t border-sidebar-border px-1.5 py-2 space-y-1">
+        {/* New bug button */}
+        <Link
+          href="/bugs/new"
+          className={cn(
+            "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
+            isCollapsed && "justify-center"
+          )}
+        >
+          <Plus className="h-4 w-4 shrink-0" />
+          {!isCollapsed && <span>新規バグ</span>}
+        </Link>
+
+        {/* Auth */}
+        {!isLoading && (
+          <>
+            {user ? (
+              <div
+                className={cn(
+                  "flex items-center gap-2 px-2 py-1.5",
+                  isCollapsed && "justify-center"
+                )}
+              >
+                <UserAvatar user={user} size={24} />
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1 truncate text-[12px] text-muted-foreground">
+                      {user.name}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                      onClick={logout}
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={login}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
+                  isCollapsed && "justify-center"
+                )}
+              >
+                <Github className="h-4 w-4 shrink-0" />
+                {!isCollapsed && <span>Login</span>}
+              </button>
+            )}
+          </>
+        )}
+      </div>
     </aside>
   );
 }
