@@ -4,7 +4,7 @@ from datetime import timezone as _tz
 
 from app.connectors.encryption import decrypt_credentials
 from app.connectors.notion.handler import NotionConnector
-from app.database import AsyncSessionLocal
+from app.database import async_session
 from app.repository.integration_repo import IntegrationRepository
 from app.repository.postgres import PostgresBugRepository
 from app.usecase.bug_usecase import BugUsecase
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 async def poll_notion_integrations() -> None:
     """Poll all active Notion integrations for new pages. Called by APScheduler."""
-    async with AsyncSessionLocal() as session:
+    async with async_session() as session:
         integration_repo = IntegrationRepository(session)
         bug_usecase = BugUsecase(PostgresBugRepository(session))
         connector = NotionConnector()
