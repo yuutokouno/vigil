@@ -67,7 +67,7 @@ async def slack_webhook(
                 channel=item.get("channel", ""),
                 ts=item.get("ts", ""),
             )
-            event_data = {**message, "channel": item.get("channel", "")}
+            event_data = {**message, "channel": item.get("channel", ""), "user": event.get("user", "")}
 
         # Deduplicate
         ts = str(event_data.get("ts", ""))

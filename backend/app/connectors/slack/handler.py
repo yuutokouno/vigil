@@ -48,20 +48,35 @@ class SlackConnector(ConnectorABC):
         user_name = await self.client.get_user_name(user) if user else "unknown"
         slack_url = f"https://slack.com/archives/{channel}/p{ts.replace('.', '')}"
 
-        # Apply field mappings if provided; otherwise use defaults
-        title = text[:100].split("\n")[0] if text else "Slack Bug Report"
-        description = text
-        reported_by = user_name
+        # Set conservative defaults; mappings below may override them
+        title = "Slack Bug Report"
+        description = None
+        reported_by = "unknown"
 
+        # Apply field mappings
         for mapping in field_mappings:
             src = mapping.get("from", "")
             dst = mapping.get("to", "")
-            if src == "message.text_title":
-                title = text[:100].split("\n")[0]
+            if src == "message.text_title" and dst == "title":
+                title = text[:100].split("\n")[0] if text else "Slack Bug Report"
             elif src == "message.text" and dst == "description":
                 description = text
+            elif src == "message.text" and dst == "title":
+                title = text[:100].split("\n")[0] if text else "Slack Bug Report"
             elif src == "user.real_name" and dst == "reported_by":
                 reported_by = user_name
+            elif src.startswith("fixed_value:") and dst == "title":
+                title = src.split(":", 1)[1]
+            elif src.startswith("fixed_value:") and dst == "description":
+                description = src.split(":", 1)[1]
+
+        # Fallback: if no mapping set the title, derive it from the message text
+        if title == "Slack Bug Report" and text:
+            title = text[:100].split("\n")[0]
+        if description is None:
+            description = text
+        if reported_by == "unknown" and user_name != "unknown":
+            reported_by = user_name
 
         return BugCreate(
             title=title,
@@ -70,7 +85,8 @@ class SlackConnector(ConnectorABC):
             source=Source.SLACK,
             severity=Severity.MEDIUM,
             priority=Priority.P2,
-            external_ref=slack_url,
+            slack_message_url=slack_url,
+            external_ref=f"{channel}:{ts}",
         )
 
     async def test_connection(self, credentials: dict) -> bool:
