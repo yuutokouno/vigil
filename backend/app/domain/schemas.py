@@ -1,14 +1,8 @@
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
-
-
-class Status(str, Enum):
-    OPEN = "open"
-    IN_PROGRESS = "in_progress"
-    IN_REVIEW = "in_review"
-    CLOSED = "closed"
 
 
 class Severity(str, Enum):
@@ -62,7 +56,7 @@ class BugCreate(BaseModel):
 class BugUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
-    status: Status | None = None
+    status: str | None = None
     severity: Severity | None = None
     priority: Priority | None = None
     category: Category | None = None
@@ -82,7 +76,7 @@ class BugResponse(BaseModel):
     expected_behavior: str | None
     actual_behavior: str | None
     environment: str | None
-    status: Status
+    status: str
     severity: Severity
     priority: Priority
     category: Category | None
@@ -101,7 +95,7 @@ class BugResponse(BaseModel):
 
 
 class BugListParams(BaseModel):
-    status: Status | None = None
+    status: str | None = None
     severity: Severity | None = None
     category: Category | None = None
     search: str | None = None
@@ -168,3 +162,69 @@ class UserResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class WorkflowColumnCreate(BaseModel):
+    name: str
+    slug: str
+
+
+class WorkflowColumnUpdate(BaseModel):
+    name: str | None = None
+    position: int | None = None
+
+
+class WorkflowColumnResponse(BaseModel):
+    id: str
+    name: str
+    slug: str
+    position: int
+    is_fixed: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class IntegrationCreate(BaseModel):
+    name: str
+    source_type: str
+    direction: str = "inbound"
+    credentials: dict[str, str]
+    trigger_rules: dict[str, Any] = {}
+    field_mappings: list[dict[str, Any]] = []
+
+
+class IntegrationUpdate(BaseModel):
+    name: str | None = None
+    is_active: bool | None = None
+    credentials: dict[str, str] | None = None
+    trigger_rules: dict[str, Any] | None = None
+    field_mappings: list[dict[str, Any]] | None = None
+
+
+class IntegrationResponse(BaseModel):
+    id: str
+    name: str
+    source_type: str
+    direction: str
+    is_active: bool
+    trigger_rules: dict[str, Any]
+    field_mappings: list[dict[str, Any]]
+    last_received_at: datetime | None
+    total_received: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class IntegrationEventResponse(BaseModel):
+    id: str
+    integration_id: str
+    direction: str
+    status: str
+    source_ref: str | None
+    bug_id: str | None
+    error_message: str | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
