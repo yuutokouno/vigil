@@ -33,7 +33,9 @@ export function KanbanBoard() {
   }, [fetchBugs]);
 
   useEffect(() => {
-    listMilestones().then(setMilestones).catch(() => {});
+    listMilestones().then(setMilestones).catch((err) => {
+      console.error("Failed to load milestones:", err);
+    });
   }, []);
 
   const { handleDragEnd } = useKanbanDnd(bugs, setBugs);

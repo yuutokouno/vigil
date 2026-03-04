@@ -3,6 +3,7 @@
 import type { DragEndEvent } from "@dnd-kit/core";
 import { updateBug } from "@/src/entities/bug/api/bug-api";
 import type { Bug, Status } from "@/src/entities/bug/model/types";
+import { STATUS } from "@/src/entities/bug/model/types";
 
 export function useKanbanDnd(
   bugs: Bug[],
@@ -13,7 +14,9 @@ export function useKanbanDnd(
     if (!over) return;
 
     const bugId = active.id as string;
-    const newStatus = over.id as Status;
+    const candidateStatus = String(over.id);
+    if (!(Object.values(STATUS) as string[]).includes(candidateStatus)) return;
+    const newStatus = candidateStatus as Status;
 
     const bug = bugs.find((b) => b.id === bugId);
     if (!bug || bug.status === newStatus) return;

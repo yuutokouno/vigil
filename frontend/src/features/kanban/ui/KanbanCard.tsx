@@ -5,18 +5,18 @@ import { GripVertical } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Badge } from "@/src/shared/ui";
-import type { Bug } from "@/src/entities/bug/model/types";
+import type { Bug, Severity, Priority } from "@/src/entities/bug/model/types";
 import type { Milestone } from "@/src/entities/milestone/model/types";
 import { cn } from "@/lib/utils";
 
-const SEVERITY_DOT: Record<string, string> = {
+const SEVERITY_DOT: Record<Severity, string> = {
   critical: "bg-severity-critical",
   high: "bg-severity-high",
   medium: "bg-severity-medium",
   low: "bg-severity-low",
 };
 
-const PRIORITY_COLORS: Record<string, string> = {
+const PRIORITY_COLORS: Record<Priority, string> = {
   P0: "text-severity-critical",
   P1: "text-severity-high",
   P2: "text-muted-foreground",
@@ -67,7 +67,7 @@ export function KanbanCard({ bug, milestone }: KanbanCardProps) {
         <span
           className={cn(
             "mt-1 h-2 w-2 shrink-0 rounded-full",
-            SEVERITY_DOT[bug.severity] ?? "bg-muted"
+            SEVERITY_DOT[bug.severity]
           )}
         />
         <Link

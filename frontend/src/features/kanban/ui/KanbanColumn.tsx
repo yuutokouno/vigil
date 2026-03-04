@@ -25,10 +25,9 @@ type KanbanColumnProps = {
   status: Status;
   bugs: Bug[];
   milestones?: Milestone[];
-  isOver?: boolean;
 };
 
-export function KanbanColumn({ status, bugs, milestones, isOver }: KanbanColumnProps) {
+export function KanbanColumn({ status, bugs, milestones }: KanbanColumnProps) {
   const { setNodeRef } = useDroppable({ id: status });
 
   return (
@@ -36,8 +35,7 @@ export function KanbanColumn({ status, bugs, milestones, isOver }: KanbanColumnP
       ref={setNodeRef}
       className={cn(
         "flex min-h-[200px] min-w-[280px] flex-col rounded-lg border border-t-4 bg-muted/30 p-3",
-        STATUS_HEADER_COLORS[status],
-        isOver && "ring-2 ring-primary"
+        STATUS_HEADER_COLORS[status]
       )}
     >
       <div className="mb-3 flex items-center justify-between">
@@ -51,7 +49,7 @@ export function KanbanColumn({ status, bugs, milestones, isOver }: KanbanColumnP
       >
         <div className="flex flex-col gap-2">
           {bugs.map((bug) => {
-            const milestone = milestones?.find((m) => m.id === bug.milestone_id) ?? undefined;
+            const milestone = milestones?.find((m) => m.id === bug.milestone_id);
             return <KanbanCard key={bug.id} bug={bug} milestone={milestone} />;
           })}
         </div>
