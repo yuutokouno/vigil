@@ -14,11 +14,11 @@ import type { Milestone } from "@/src/entities/milestone/model/types";
 import { KanbanCard } from "./KanbanCard";
 import { cn } from "@/lib/utils";
 
-const STATUS_HEADER_COLORS: Record<Status, string> = {
-  open: "border-t-red-500",
-  in_progress: "border-t-blue-500",
-  in_review: "border-t-yellow-500",
-  closed: "border-t-green-500",
+const STATUS_DOT_COLORS: Record<Status, string> = {
+  open: "bg-status-open",
+  in_progress: "bg-status-in-progress",
+  in_review: "bg-status-in-review",
+  closed: "bg-status-closed",
 };
 
 type KanbanColumnProps = {
@@ -33,14 +33,12 @@ export function KanbanColumn({ status, bugs, milestones }: KanbanColumnProps) {
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        "flex min-h-[200px] min-w-[280px] flex-col rounded-lg border border-t-4 bg-muted/30 p-3",
-        STATUS_HEADER_COLORS[status]
-      )}
+      className="flex min-h-[200px] min-w-[280px] flex-col rounded-md border border-border bg-card/50 p-3"
     >
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold">{STATUS_LABELS[status]}</h3>
-        <span className="text-xs text-muted-foreground">{bugs.length}</span>
+      <div className="mb-3 flex items-center gap-2">
+        <span className={cn("h-2 w-2 rounded-full shrink-0", STATUS_DOT_COLORS[status])} />
+        <h3 className="flex-1 text-[13px] font-medium text-foreground">{STATUS_LABELS[status]}</h3>
+        <span className="text-[11px] text-muted-foreground">{bugs.length}</span>
       </div>
 
       <SortableContext
