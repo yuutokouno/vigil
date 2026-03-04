@@ -53,6 +53,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         <Button
           variant="ghost"
           size="icon"
+          aria-label={isCollapsed ? "サイドバーを開く" : "サイドバーを閉じる"}
           className={cn(
             "h-7 w-7 text-muted-foreground hover:text-foreground",
             isCollapsed && "mx-auto"
@@ -80,11 +81,15 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] font-medium transition-colors",
-                isActive
-                  ? "border-l-2 border-primary bg-secondary pl-[6px] text-foreground"
-                  : "border-l-2 border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
-                isCollapsed && "justify-center border-l-0 px-2 pl-2"
+                "flex items-center rounded-md text-[13px] font-medium transition-colors",
+                isCollapsed
+                  ? "justify-center px-2 py-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  : cn(
+                      "gap-2.5 px-2 py-1.5 border-l-2",
+                      isActive
+                        ? "border-primary bg-secondary pl-[6px] text-foreground"
+                        : "border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    )
               )}
             >
               <item.icon className="h-4 w-4 shrink-0" />
@@ -127,6 +132,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="ログアウト"
                       className="h-6 w-6 text-muted-foreground hover:text-foreground"
                       onClick={logout}
                     >
@@ -136,16 +142,17 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 )}
               </div>
             ) : (
-              <button
+              <Button
+                variant="ghost"
                 onClick={login}
                 className={cn(
-                  "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
+                  "w-full justify-start gap-2.5 px-2 py-1.5 text-[13px] font-normal text-muted-foreground hover:bg-secondary hover:text-foreground",
                   isCollapsed && "justify-center"
                 )}
               >
                 <Github className="h-4 w-4 shrink-0" />
                 {!isCollapsed && <span>Login</span>}
-              </button>
+              </Button>
             )}
           </>
         )}
