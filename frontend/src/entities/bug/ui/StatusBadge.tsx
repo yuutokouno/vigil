@@ -3,11 +3,11 @@
 import { Badge } from "@/src/shared/ui";
 import { STATUS_LABELS, type Status } from "@/src/entities/bug/model/types";
 
-const STATUS_STYLES: Record<Status, string> = {
-  open: "bg-red-100 text-red-800 hover:bg-red-100",
-  in_progress: "bg-blue-100 text-blue-800 hover:bg-blue-100",
-  in_review: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
-  closed: "bg-green-100 text-green-800 hover:bg-green-100",
+const STATUS_CLASSES: Record<Status, string> = {
+  open:        "bg-severity-critical/15 text-severity-critical border-severity-critical/30",
+  in_progress: "bg-severity-medium/15 text-severity-medium border-severity-medium/30",
+  in_review:   "bg-severity-high/15 text-severity-high border-severity-high/30",
+  closed:      "bg-severity-low/15 text-severity-low border-severity-low/30",
 };
 
 type StatusBadgeProps = {
@@ -16,7 +16,7 @@ type StatusBadgeProps = {
 
 export function StatusBadge({ status }: StatusBadgeProps) {
   return (
-    <Badge variant="secondary" className={STATUS_STYLES[status]}>
+    <Badge variant="outline" className={STATUS_CLASSES[status]}>
       {STATUS_LABELS[status]}
     </Badge>
   );

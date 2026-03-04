@@ -10,11 +10,12 @@ type StatsCardsProps = {
 
 const STATUS_ORDER: Status[] = ["open", "in_progress", "in_review", "closed"];
 
+// Map status values to design-system severity color tokens
 const STATUS_COLORS: Record<Status, string> = {
-  open: "text-red-600",
-  in_progress: "text-blue-600",
-  in_review: "text-yellow-600",
-  closed: "text-green-600",
+  open: "text-severity-critical",
+  in_progress: "text-severity-low",
+  in_review: "text-severity-high",
+  closed: "text-severity-low",
 };
 
 export function StatsCards({ stats, onStatusClick }: StatsCardsProps) {
@@ -23,16 +24,16 @@ export function StatsCards({ stats, onStatusClick }: StatsCardsProps) {
       {STATUS_ORDER.map((status) => (
         <Card
           key={status}
-          className={onStatusClick ? "cursor-pointer transition-shadow hover:shadow-md" : ""}
+          className={onStatusClick ? "cursor-pointer transition-colors hover:bg-secondary" : ""}
           onClick={() => onStatusClick?.(status)}
         >
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-[11px] uppercase tracking-wider text-muted-foreground">
               {STATUS_LABELS[status]}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={`text-3xl font-bold ${STATUS_COLORS[status]}`}>
+            <p className={`text-2xl font-semibold text-foreground ${STATUS_COLORS[status]}`}>
               {stats.by_status[status] ?? 0}
             </p>
           </CardContent>

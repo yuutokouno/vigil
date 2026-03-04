@@ -22,7 +22,7 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Issues</h1>
+        <h1 className="text-lg font-semibold tracking-tight">Issues</h1>
         <ViewToggle />
       </div>
 
