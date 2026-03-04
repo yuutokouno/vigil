@@ -27,7 +27,7 @@ export function useIntegrationWizard(
     source_type: (editingIntegration?.source_type as SourceType) ?? null,
     direction: (editingIntegration?.direction as "inbound" | "bidirectional") ?? "inbound",
     credentials: {},
-    trigger_rules: editingIntegration?.trigger_rules as Record<string, unknown> ?? {},
+    trigger_rules: (editingIntegration?.trigger_rules ?? {}) as Record<string, unknown>,
     field_mappings: editingIntegration?.field_mappings ?? [],
     isTesting: false,
     testResult: null,

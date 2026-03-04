@@ -33,7 +33,7 @@ export function IntegrationWizard({ editingIntegration, onSuccess, onClose }: Pr
         .then(setSourceFields)
         .catch(() => setSourceFields([]));
     }
-  }, [state.step, state.source_type]);
+  }, [state.step, state.source_type, state.credentials]);
 
   const handleTest = async () => {
     if (!editingIntegration) return;
@@ -94,6 +94,7 @@ export function IntegrationWizard({ editingIntegration, onSuccess, onClose }: Pr
               credentials={state.credentials}
               isTesting={state.isTesting}
               testResult={state.testResult}
+              canTest={editingIntegration !== null}
               onCredentialChange={(k, v) => update({ credentials: { ...state.credentials, [k]: v } })}
               onTest={handleTest}
             />
