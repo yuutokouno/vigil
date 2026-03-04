@@ -18,6 +18,7 @@ type Props = {
 };
 
 export function BugTrendChart({ current, previous }: Props) {
+  // previous period data is aligned by index to overlay on current period's x-axis
   const data = current.map((c, i) => ({
     date: c.date.slice(5), // MM-DD
     created: c.created,

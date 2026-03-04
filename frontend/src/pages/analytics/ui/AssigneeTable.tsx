@@ -13,7 +13,8 @@ export function AssigneeTable({ assignees }: Props) {
     );
   }
 
-  const max = Math.max(...assignees.map((a) => a.closed));
+  // Ensure minimum of 1 to avoid division by zero (NaN) when all values are 0
+  const max = Math.max(...assignees.map((a) => a.closed), 1);
 
   return (
     <div className="space-y-2">

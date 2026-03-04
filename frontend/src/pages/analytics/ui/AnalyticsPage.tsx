@@ -22,16 +22,20 @@ export function AnalyticsPage() {
   const [compareEnabled, setCompareEnabled] = useState(false);
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
   const load = useCallback(async () => {
     setIsLoading(true);
+    setIsError(false);
     try {
       const res = await fetchAnalytics(
         period,
         compareEnabled ? "prev" : undefined,
       );
       setData(res);
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch analytics:", err);
+      setIsError(true);
       setData(null);
     } finally {
       setIsLoading(false);
@@ -76,15 +80,29 @@ export function AnalyticsPage() {
         </div>
       </div>
 
+      {isError && (
+        <div className="flex flex-col items-center gap-3 py-8">
+          <p className="text-[12px] text-muted-foreground">
+            データを取得できませんでした
+          </p>
+          <button
+            onClick={load}
+            className="rounded-md border border-border px-4 py-1.5 text-[12px] text-foreground transition-colors hover:bg-secondary"
+          >
+            再試行
+          </button>
+        </div>
+      )}
+
       {isLoading ? (
         <p className="py-16 text-center text-[12px] text-muted-foreground">
           読み込み中...
         </p>
-      ) : !data ? (
+      ) : !isError && !data ? (
         <p className="py-16 text-center text-[12px] text-muted-foreground">
           データを取得できませんでした
         </p>
-      ) : (
+      ) : !isError && data ? (
         <>
           {/* KPI cards */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
