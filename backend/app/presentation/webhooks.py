@@ -98,18 +98,23 @@ async def slack_webhook(
             await integration_repo.log_event(
                 str(integration.id), "created", source_ref=source_ref, bug_id=str(bug.id)
             )
-            # Optional: post confirmation to Slack thread
-            await connector.client.post_thread_message(
-                channel=channel,
-                thread_ts=ts,
-                text=f"Vigilにバグチケットを作成しました: {bug.title}",
-            )
             results.append("created")
         except Exception as e:
             await integration_repo.log_event(
                 str(integration.id), "error", source_ref=source_ref, error_message=str(e)
             )
             results.append("error")
+            continue
+
+        # Best-effort Slack thread notification — failure must not change the created status.
+        try:
+            await connector.client.post_thread_message(
+                channel=channel,
+                thread_ts=ts,
+                text=f"✅ Vigilにバグチケットを作成しました: {bug.title}",
+            )
+        except Exception:
+            pass  # Non-fatal: ticket was already created successfully
 
     return {"ok": True, "results": results}
 

@@ -29,10 +29,10 @@ class SlackClient:
             )
             resp.raise_for_status()
             data = resp.json()
-            if data.get("ok"):
-                user = data["user"]
-                return user.get("real_name") or user.get("name", "unknown")
-        return "unknown"
+            if not data.get("ok"):
+                return "unknown"
+            user = data["user"]
+            return user.get("real_name") or user.get("name", "unknown")
 
     async def post_thread_message(self, channel: str, thread_ts: str, text: str) -> None:
         async with httpx.AsyncClient(timeout=10.0) as client:
