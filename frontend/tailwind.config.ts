@@ -61,6 +61,12 @@ const config: Config = {
   				border: 'hsl(var(--sidebar-border))',
   				accent: 'hsl(var(--sidebar-accent))',
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+  			},
+  			severity: {
+  				critical: 'hsl(var(--severity-critical))',
+  				high: 'hsl(var(--severity-high))',
+  				medium: 'hsl(var(--severity-medium))',
+  				low: 'hsl(var(--severity-low))',
   			}
   		}
   	}
