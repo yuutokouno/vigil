@@ -10,7 +10,6 @@ import {
   BarChart2,
   PanelLeftClose,
   PanelLeft,
-  Plus,
   LogOut,
   Github,
 } from "lucide-react";
@@ -104,20 +103,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer: new bug + auth */}
+      {/* Footer: auth */}
       <div className="shrink-0 border-t border-sidebar-border px-1.5 py-2 space-y-1">
-        {/* New bug button */}
-        <Link
-          href="/bugs/new"
-          className={cn(
-            "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
-            isCollapsed && "justify-center"
-          )}
-        >
-          <Plus className="h-4 w-4 shrink-0" />
-          {!isCollapsed && <span>新規バグ</span>}
-        </Link>
-
         {/* Auth */}
         {!isLoading && (
           <>
