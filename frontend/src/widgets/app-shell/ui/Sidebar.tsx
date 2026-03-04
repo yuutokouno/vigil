@@ -39,9 +39,14 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200",
+        "flex h-screen flex-col border-r border-sidebar-border transition-[width] duration-200",
         isCollapsed ? "w-[52px]" : "w-[220px]"
       )}
+      style={{
+        background: "rgba(12, 12, 20, 0.88)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+      }}
     >
       {/* Logo + collapse toggle */}
       <div className="flex h-12 shrink-0 items-center border-b border-sidebar-border px-3">
@@ -73,8 +78,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.href === "/"
-              ? pathname === "/" || pathname.startsWith("/bugs")
-              : pathname.startsWith(item.href);
+              ? pathname === "/" || pathname?.startsWith("/bugs")
+              : pathname?.startsWith(item.href);
 
           return (
             <Link

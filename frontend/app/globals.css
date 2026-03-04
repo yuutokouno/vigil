@@ -59,8 +59,16 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-size: 13px;
     letter-spacing: -0.01em;
+    background-color: hsl(var(--background));
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Ccircle cx='13' cy='13' r='0.9' fill='rgba(139%2C92%2C246%2C0.08)'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse at 18% 18%, rgba(139, 92, 246, 0.08) 0%, transparent 48%),
+      radial-gradient(ellipse at 82% 72%, rgba(59, 130, 246, 0.06) 0%, transparent 42%);
+    background-size: 26px 26px, 100% 100%, 100% 100%;
+    background-repeat: repeat, no-repeat, no-repeat;
+    background-attachment: fixed;
   }
 }
