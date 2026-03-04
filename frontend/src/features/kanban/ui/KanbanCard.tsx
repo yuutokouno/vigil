@@ -49,7 +49,7 @@ export function KanbanCard({ bug, milestone }: KanbanCardProps) {
       style={style}
       className={cn(
         "group relative rounded-md border border-border bg-card p-3 text-[13px]",
-        isDragging && "opacity-40"
+        isDragging && "opacity-20 border-dashed"
       )}
     >
       {/* Drag handle */}
