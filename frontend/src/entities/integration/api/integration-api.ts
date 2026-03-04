@@ -6,6 +6,7 @@ import type {
   IntegrationEvent,
   IntegrationUpdate,
   SchemaField,
+  SourceType,
 } from "@/src/entities/integration/model/types";
 
 export async function listIntegrations(): Promise<Integration[]> {
@@ -13,7 +14,10 @@ export async function listIntegrations(): Promise<Integration[]> {
 }
 
 export async function createIntegration(data: IntegrationCreate): Promise<Integration> {
-  return apiClient<Integration>("/api/integrations", { method: "POST", body: data });
+  return apiClient<Integration>("/api/integrations", {
+    method: "POST",
+    body: data,
+  });
 }
 
 export async function getIntegration(id: string): Promise<Integration> {
@@ -36,11 +40,13 @@ export async function listIntegrationEvents(
   id: string,
   limit = 50
 ): Promise<IntegrationEvent[]> {
-  return apiClient<IntegrationEvent[]>(`/api/integrations/${id}/events?limit=${limit}`);
+  return apiClient<IntegrationEvent[]>(`/api/integrations/${id}/events`, {
+    params: { limit },
+  });
 }
 
 export async function fetchSourceSchema(
-  sourceType: string,
+  sourceType: SourceType,
   credentials: Record<string, string>
 ): Promise<SchemaField[]> {
   return apiClient<SchemaField[]>(`/api/integrations/schema/${sourceType}`, {

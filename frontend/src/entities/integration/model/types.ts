@@ -3,6 +3,11 @@
 export type SourceType = "slack" | "hubspot" | "notion";
 export type Direction = "inbound" | "bidirectional";
 
+export type FieldMapping = {
+  from: string;
+  to: string;
+};
+
 export type Integration = {
   id: string;
   name: string;
@@ -14,11 +19,6 @@ export type Integration = {
   last_received_at: string | null;
   total_received: number;
   created_at: string;
-};
-
-export type FieldMapping = {
-  from: string;
-  to: string;
 };
 
 export type IntegrationCreate = {
@@ -41,7 +41,7 @@ export type IntegrationUpdate = {
 export type IntegrationEvent = {
   id: string;
   integration_id: string;
-  direction: string;
+  direction: Direction;
   status: "created" | "skipped" | "duplicate" | "error";
   source_ref: string | null;
   bug_id: string | null;
