@@ -1,13 +1,11 @@
-"use client";
-
 import { Badge } from "@/src/shared/ui";
 import { STATUS_LABELS, type Status } from "@/src/entities/bug/model/types";
 
 const STATUS_CLASSES: Record<Status, string> = {
-  open:        "bg-severity-critical/15 text-severity-critical border-severity-critical/30",
-  in_progress: "bg-severity-medium/15 text-severity-medium border-severity-medium/30",
-  in_review:   "bg-severity-high/15 text-severity-high border-severity-high/30",
-  closed:      "bg-severity-low/15 text-severity-low border-severity-low/30",
+  open:        "bg-status-open/15 text-status-open border-status-open/30",
+  in_progress: "bg-status-in-progress/15 text-status-in-progress border-status-in-progress/30",
+  in_review:   "bg-status-in-review/15 text-status-in-review border-status-in-review/30",
+  closed:      "bg-status-closed/15 text-status-closed border-status-closed/30",
 };
 
 type StatusBadgeProps = {

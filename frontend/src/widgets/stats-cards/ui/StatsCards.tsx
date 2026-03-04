@@ -10,12 +10,11 @@ type StatsCardsProps = {
 
 const STATUS_ORDER: Status[] = ["open", "in_progress", "in_review", "closed"];
 
-// Map status values to design-system severity color tokens
 const STATUS_COLORS: Record<Status, string> = {
-  open: "text-severity-critical",
-  in_progress: "text-severity-medium",
-  in_review: "text-severity-high",
-  closed: "text-severity-low",
+  open:        "text-status-open",
+  in_progress: "text-status-in-progress",
+  in_review:   "text-status-in-review",
+  closed:      "text-status-closed",
 };
 
 export function StatsCards({ stats, onStatusClick }: StatsCardsProps) {

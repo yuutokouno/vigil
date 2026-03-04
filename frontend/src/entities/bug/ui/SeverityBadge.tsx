@@ -1,5 +1,3 @@
-"use client";
-
 import { Badge } from "@/src/shared/ui";
 import { SEVERITY_LABELS, type Severity } from "@/src/entities/bug/model/types";
 

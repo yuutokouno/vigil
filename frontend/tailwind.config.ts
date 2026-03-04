@@ -60,6 +60,12 @@ const config: Config = {
   				high: 'hsl(var(--severity-high))',
   				medium: 'hsl(var(--severity-medium))',
   				low: 'hsl(var(--severity-low))',
+  			},
+  			status: {
+  				open:          'hsl(var(--status-open))',
+  				'in-progress': 'hsl(var(--status-in-progress))',
+  				'in-review':   'hsl(var(--status-in-review))',
+  				closed:        'hsl(var(--status-closed))',
   			}
   		}
   	}

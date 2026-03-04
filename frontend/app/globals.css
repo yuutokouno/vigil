@@ -46,6 +46,12 @@
     --severity-high: 25 95% 53%;       /* #F97316 */
     --severity-medium: 48 96% 53%;     /* #EAB308 */
     --severity-low: 142 71% 45%;       /* #22C55E */
+
+    /* Status colors — semantic status progression */
+    --status-open:        0 84% 60%;   /* red #EF4444 — needs attention */
+    --status-in-progress: 48 96% 53%;  /* amber #EAB308 — in work */
+    --status-in-review:   25 95% 53%;  /* orange #F97316 — awaiting review */
+    --status-closed:      142 71% 45%; /* green #22C55E — done */
   }
 
   * {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/shared/ui";
 import { fetchAnalytics } from "@/src/entities/analytics/api/analytics-api";
 import type { AnalyticsResponse } from "@/src/entities/analytics/model/types";
@@ -45,6 +45,18 @@ export function AnalyticsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const kpiCards = useMemo(() => {
+    if (!data) return [];
+    const totalCreated = data.current.daily.reduce((s, d) => s + d.created, 0);
+    const totalClosed = data.current.daily.reduce((s, d) => s + d.closed, 0);
+    return [
+      { label: "発生バグ（合計）", value: totalCreated },
+      { label: "解決バグ（合計）", value: totalClosed },
+      { label: "平均クローズ時間", value: `${data.current.avg_close_hours}h` },
+      { label: "アクティブマイルストーン", value: data.milestones.length },
+    ] as { label: string; value: string | number }[];
+  }, [data]);
 
   return (
     <div className="space-y-6">
@@ -106,24 +118,7 @@ export function AnalyticsPage() {
         <>
           {/* KPI cards */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {[
-              {
-                label: "発生バグ（合計）",
-                value: data.current.daily.reduce((s, d) => s + d.created, 0),
-              },
-              {
-                label: "解決バグ（合計）",
-                value: data.current.daily.reduce((s, d) => s + d.closed, 0),
-              },
-              {
-                label: "平均クローズ時間",
-                value: `${data.current.avg_close_hours}h`,
-              },
-              {
-                label: "アクティブマイルストーン",
-                value: data.milestones.length,
-              },
-            ].map((kpi) => (
+            {kpiCards.map((kpi) => (
               <Card key={kpi.label}>
                 <CardContent className="pt-4">
                   <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
