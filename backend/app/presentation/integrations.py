@@ -9,6 +9,7 @@ from app.domain.schemas import (
     IntegrationEventResponse,
     IntegrationResponse,
     IntegrationUpdate,
+    TestConnectionResponse,
 )
 from app.repository.integration_repo import IntegrationRepository
 from app.usecase.integration_usecase import IntegrationNotFoundError, IntegrationUsecase
@@ -31,6 +32,17 @@ async def create_integration(
     usecase: IntegrationUsecase = Depends(_get_usecase),
 ):
     return await usecase.create(data)
+
+
+# Declare literal-segment routes before parameterized routes to ensure correct resolution
+@router.post("/schema/{source_type}", response_model=list[dict[str, Any]])
+async def get_source_schema(
+    source_type: str,
+    credentials: dict[str, str],
+    usecase: IntegrationUsecase = Depends(_get_usecase),
+) -> list[dict[str, Any]]:
+    """Return available source fields for field mapping UI (uses provided credentials, not saved)."""
+    return await usecase.fetch_schema(source_type, credentials)
 
 
 @router.get("/{integration_id}", response_model=IntegrationResponse)
@@ -67,14 +79,14 @@ async def delete_integration(
         raise HTTPException(status_code=404, detail="Integration not found")
 
 
-@router.post("/{integration_id}/test")
+@router.post("/{integration_id}/test", response_model=TestConnectionResponse)
 async def test_integration(
     integration_id: str,
     usecase: IntegrationUsecase = Depends(_get_usecase),
 ):
     try:
         ok = await usecase.test_connection(integration_id)
-        return {"ok": ok}
+        return TestConnectionResponse(ok=ok)
     except IntegrationNotFoundError:
         raise HTTPException(status_code=404, detail="Integration not found")
 
@@ -89,13 +101,3 @@ async def list_integration_events(
         return await usecase.list_events(integration_id, limit)
     except IntegrationNotFoundError:
         raise HTTPException(status_code=404, detail="Integration not found")
-
-
-@router.post("/schema/{source_type}")
-async def get_source_schema(
-    source_type: str,
-    credentials: dict[str, str],
-    usecase: IntegrationUsecase = Depends(_get_usecase),
-) -> list[dict[str, Any]]:
-    """Return available source fields for field mapping UI (uses provided credentials, not saved)."""
-    return await usecase.fetch_schema(source_type, credentials)
