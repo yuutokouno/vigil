@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.connectors.encryption import decrypt_credentials
+from app.connectors.encryption import CredentialDecryptionError, decrypt_credentials
 from app.connectors.registry import get_connector
 from app.connectors.slack.handler import SlackConnector
 from app.database import get_session
@@ -30,7 +30,10 @@ async def slack_webhook(
     body = await request.body()
     json_body = await request.json()
 
-    # Slack URL verification handshake (one-time setup)
+    # Handle Slack URL verification challenge (initial setup handshake).
+    # This is intentionally processed before signature verification since Slack sends
+    # this challenge before the integration is fully configured. Returning the challenge
+    # value poses no security risk as it only echoes back data the caller provided.
     if json_body.get("type") == "url_verification":
         return {"challenge": json_body["challenge"]}
 
@@ -43,7 +46,14 @@ async def slack_webhook(
     results = []
 
     for integration in integrations:
-        credentials = decrypt_credentials(integration.credentials_enc)
+        try:
+            credentials = decrypt_credentials(integration.credentials_enc)
+        except CredentialDecryptionError:
+            await integration_repo.log_event(
+                str(integration.id), "error", error_message="credential_decryption_failed"
+            )
+            results.append("error")
+            continue
         connector = SlackConnector(
             bot_token=credentials.get("bot_token", ""),
             signing_secret=credentials.get("signing_secret", ""),
@@ -51,6 +61,9 @@ async def slack_webhook(
 
         # Verify signature
         if not await connector.verify_request(request, body):
+            await integration_repo.log_event(
+                str(integration.id), "error", error_message="signature_verification_failed"
+            )
             continue
 
         # Check trigger rules

@@ -14,12 +14,12 @@ def verify_slack_signature(
     try:
         if abs(time.time() - float(timestamp)) > 300:
             return False  # Reject requests older than 5 minutes (replay attack prevention)
-        sig_basestring = f"v0:{timestamp}:{body.decode()}"
+        sig_basestring = f"v0:{timestamp}:{body.decode('utf-8')}"
         expected = "v0=" + hmac.new(
             signing_secret.encode(),
             sig_basestring.encode(),
             hashlib.sha256,
         ).hexdigest()
         return hmac.compare_digest(expected, signature)
-    except Exception:
+    except (ValueError, UnicodeDecodeError, AttributeError):
         return False
