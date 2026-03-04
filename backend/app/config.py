@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440  # 24 hours
     frontend_url: str = "http://localhost:3000"
+    encryption_key: str = "VbiKcFvSUFlBcU8lELf3XGSvC1UKRndkzQprzDDEZZw="
 
     @property
     def cors_origin_list(self) -> list[str]:
