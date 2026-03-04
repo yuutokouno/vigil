@@ -232,3 +232,7 @@ class IntegrationEventResponse(BaseModel):
 
 class TestConnectionResponse(BaseModel):
     ok: bool
+
+
+class SchemaFetchRequest(BaseModel):
+    credentials: dict[str, str]
