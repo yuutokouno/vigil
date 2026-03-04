@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
+import { Header } from "./Header";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -16,7 +17,10 @@ export function AppShell({ children }: AppShellProps) {
         isCollapsed={isSidebarCollapsed}
         onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
       />
-      <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      </div>
     </div>
   );
 }
