@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.connectors.hubspot.handler import HubSpotConnector
 from app.connectors.registry import register_connector
 from app.connectors.slack.handler import SlackConnector
 from app.presentation.analytics import router as analytics_router
@@ -38,6 +39,7 @@ app.include_router(workflow_columns_router)
 async def startup() -> None:
     # Register connector sentinels (actual credentials come from DB at request time)
     register_connector("slack", SlackConnector.__new__(SlackConnector))
+    register_connector("hubspot", HubSpotConnector())
 
 
 @app.get("/api/health")
