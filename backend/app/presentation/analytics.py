@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select, cast, Integer
+from pydantic import BaseModel
+from sqlalchemy import Date, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_session
@@ -11,8 +12,41 @@ from app.domain.models import Bug, Milestone
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 
-def _period_days(period: str) -> int:
-    return {"7d": 7, "30d": 30, "90d": 90}.get(period, 30)
+class DailyPoint(BaseModel):
+    date: str
+    created: int
+    closed: int
+
+
+class AssigneeStats(BaseModel):
+    name: str
+    closed: int
+
+
+class PeriodStats(BaseModel):
+    daily: list[DailyPoint]
+    avg_close_hours: float
+    by_severity: dict[str, int]
+    by_assignee: list[AssigneeStats]
+
+
+class MilestoneStat(BaseModel):
+    id: str
+    title: str
+    total: int
+    closed: int
+    rate: int
+
+
+class AnalyticsResponse(BaseModel):
+    period: Literal["7d", "30d", "90d"]
+    current: PeriodStats
+    previous: PeriodStats | None = None
+    milestones: list[MilestoneStat]
+
+
+def _period_days(period: Literal["7d", "30d", "90d"]) -> int:
+    return {"7d": 7, "30d": 30, "90d": 90}[period]
 
 
 async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) -> dict:
@@ -24,7 +58,7 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
         daily_map[d] = {"date": d.isoformat(), "created": 0, "closed": 0}
 
     created_rows = await session.execute(
-        select(func.date(Bug.created_at).label("d"), func.count().label("c"))
+        select(cast(func.date(Bug.created_at), Date).label("d"), func.count().label("c"))
         .where(Bug.created_at >= start, Bug.created_at <= end)
         .group_by(func.date(Bug.created_at))
     )
@@ -33,7 +67,7 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
             daily_map[row.d]["created"] = row.c
 
     closed_rows = await session.execute(
-        select(func.date(Bug.closed_at).label("d"), func.count().label("c"))
+        select(cast(func.date(Bug.closed_at), Date).label("d"), func.count().label("c"))
         .where(Bug.closed_at >= start, Bug.closed_at <= end)
         .group_by(func.date(Bug.closed_at))
     )
@@ -47,7 +81,11 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
             func.avg(
                 func.extract("epoch", Bug.closed_at - Bug.created_at) / 3600
             )
-        ).where(Bug.closed_at >= start, Bug.closed_at <= end, Bug.closed_at.isnot(None))
+        ).where(
+            Bug.closed_at >= start,
+            Bug.closed_at <= end,
+            Bug.closed_at > Bug.created_at,
+        )
     )
     avg_close_hours = round(float(avg_result.scalar() or 0), 1)
 
@@ -83,14 +121,14 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
     }
 
 
-@router.get("")
+@router.get("", response_model=AnalyticsResponse)
 async def get_analytics(
     period: Literal["7d", "30d", "90d"] = Query("30d"),
     compare_to: Literal["prev"] | None = Query(None),
     session: AsyncSession = Depends(get_session),
-) -> dict:
+) -> AnalyticsResponse:
     days = _period_days(period)
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     current_start = now - timedelta(days=days)
 
     current = await _compute_stats(session, current_start, now)
@@ -107,9 +145,7 @@ async def get_analytics(
             Milestone.id,
             Milestone.title,
             func.count(Bug.id).label("total"),
-            func.sum(
-                cast(Bug.status == "closed", Integer)
-            ).label("closed_count"),
+            func.count().filter(Bug.status == "closed").label("closed_count"),
         )
         .outerjoin(Bug, Bug.milestone_id == Milestone.id)
         .where(Milestone.status == "active")
