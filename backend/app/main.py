@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.presentation.analytics import router as analytics_router
 from app.presentation.auth import router as auth_router
 from app.presentation.bugs import router as bugs_router
 from app.presentation.milestones import router as milestones_router
@@ -18,6 +19,7 @@ app.add_middleware(
 )
 
 
+app.include_router(analytics_router)
 app.include_router(auth_router)
 app.include_router(bugs_router)
 app.include_router(milestones_router)
