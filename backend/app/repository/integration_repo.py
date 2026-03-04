@@ -1,8 +1,7 @@
 # backend/app/repository/integration_repo.py
 import uuid
-from datetime import datetime, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.connectors.encryption import encrypt_credentials, decrypt_credentials
@@ -100,7 +99,7 @@ class IntegrationRepository:
                 .where(Integration.id == uuid.UUID(integration_id))
                 .values(
                     total_received=Integration.total_received + 1,
-                    last_received_at=datetime.now(timezone.utc),
+                    last_received_at=func.now(),
                 )
             )
         await self._session.commit()
