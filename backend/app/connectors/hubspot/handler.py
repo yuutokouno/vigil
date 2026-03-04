@@ -13,6 +13,8 @@ SEVERITY_MAP: dict[str, Severity] = {
     "HIGH": Severity.HIGH,
     "MEDIUM": Severity.MEDIUM,
     "LOW": Severity.LOW,
+    # HubSpot also emits "URGENT"; treat as HIGH severity.
+    "URGENT": Severity.HIGH,
 }
 
 
@@ -62,6 +64,7 @@ class HubSpotConnector(ConnectorABC):
         return True
 
     async def transform(self, event_data: dict, field_mappings: list[dict]) -> BugCreate:
+        # field_mappings are intentionally unused in V1; HubSpot fields are mapped statically.
         properties: dict[str, Any] = event_data.get("properties", {})
 
         subject = _extract_prop(properties.get("subject", "")) or "HubSpot Ticket"
@@ -72,7 +75,7 @@ class HubSpotConnector(ConnectorABC):
         return BugCreate(
             title=subject[:200],
             description=content or None,
-            reported_by="顧客",
+            reported_by="customer",
             source=Source.HUBSPOT,
             severity=SEVERITY_MAP.get(hs_priority, Severity.MEDIUM),
             priority=Priority.P2,
@@ -90,6 +93,7 @@ class HubSpotConnector(ConnectorABC):
                 )
                 return resp.status_code == 200
             except httpx.HTTPError:
+                # Covers ConnectError, TimeoutException, and all transport-level failures.
                 return False
 
     async def fetch_schema(self, credentials: dict) -> list[dict]:
