@@ -10,7 +10,15 @@ def register_connector(source_type: str, connector: ConnectorABC) -> None:
     Args:
         source_type: Identifier for the service (e.g. 'slack', 'hubspot', 'notion').
         connector: An instance of a ConnectorABC subclass.
+
+    Raises:
+        ValueError: If a connector for source_type is already registered.
     """
+    if source_type in _registry:
+        raise ValueError(
+            f"Connector for '{source_type}' is already registered. "
+            "Use a unique source_type or deregister the existing one first."
+        )
     _registry[source_type] = connector
 
 
