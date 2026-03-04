@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -130,8 +131,8 @@ class Integration(Base):
     direction: Mapped[str] = mapped_column(String(20), nullable=False, default="inbound")
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True)
     credentials_enc: Mapped[bytes | None] = mapped_column(LargeBinary(), nullable=True)
-    trigger_rules: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
-    field_mappings: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    trigger_rules: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    field_mappings: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
     last_received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     total_received: Mapped[int] = mapped_column(Integer(), nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
@@ -151,7 +152,7 @@ class IntegrationEvent(Base):
     integration_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("integrations.id", ondelete="CASCADE"), nullable=False
     )
-    direction: Mapped[str] = mapped_column(String(10), nullable=False, default="inbound")
+    direction: Mapped[str] = mapped_column(String(20), nullable=False, default="inbound")
     status: Mapped[str] = mapped_column(String(20), nullable=False)
     source_ref: Mapped[str | None] = mapped_column(String(200))
     bug_id: Mapped[uuid.UUID | None] = mapped_column(

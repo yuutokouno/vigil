@@ -4,14 +4,16 @@ Revision ID: b1c2d3e4f5a6
 Revises: a1b2c3d4e5f6
 Create Date: 2026-03-05
 """
+from typing import Sequence, Union
+
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
-revision = 'b1c2d3e4f5a6'
-down_revision = 'a1b2c3d4e5f6'
-branch_labels = None
-depends_on = None
+revision: str = 'b1c2d3e4f5a6'
+down_revision: Union[str, None] = 'a1b2c3d4e5f6'
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
@@ -52,7 +54,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_column('bugs', 'external_ref')
-    op.drop_index('idx_integration_events_source_ref')
-    op.drop_index('idx_integration_events_integration_id')
+    op.drop_index('idx_integration_events_source_ref', table_name='integration_events')
+    op.drop_index('idx_integration_events_integration_id', table_name='integration_events')
     op.drop_table('integration_events')
     op.drop_table('integrations')
