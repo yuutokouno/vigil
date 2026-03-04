@@ -1,4 +1,6 @@
 # backend/app/usecase/integration_usecase.py
+from typing import Any
+
 from app.connectors.encryption import decrypt_credentials
 from app.connectors.registry import get_connector
 from app.domain.schemas import (
@@ -27,10 +29,10 @@ class IntegrationUsecase:
         return await self._repository.list_all()
 
     async def get(self, integration_id: str) -> IntegrationResponse:
-        integration = await self._repository.get_by_id(integration_id)
-        if integration is None:
+        response = await self._repository.get_response_by_id(integration_id)
+        if response is None:
             raise IntegrationNotFoundError(integration_id)
-        return self._repository._to_response(integration)
+        return response
 
     async def update(self, integration_id: str, data: IntegrationUpdate) -> IntegrationResponse:
         integration = await self._repository.get_by_id(integration_id)
@@ -56,7 +58,7 @@ class IntegrationUsecase:
         credentials = decrypt_credentials(integration.credentials_enc)
         return await connector.test_connection(credentials)
 
-    async def fetch_schema(self, source_type: str, credentials: dict) -> list[dict]:
+    async def fetch_schema(self, source_type: str, credentials: dict[str, str]) -> list[dict[str, Any]]:
         connector = get_connector(source_type)
         if connector is None:
             return []

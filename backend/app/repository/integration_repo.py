@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.connectors.encryption import encrypt_credentials, decrypt_credentials
@@ -36,6 +36,12 @@ class IntegrationRepository:
 
     async def get_by_id(self, integration_id: str) -> Integration | None:
         return await self._session.get(Integration, uuid.UUID(integration_id))
+
+    async def get_response_by_id(self, integration_id: str) -> IntegrationResponse | None:
+        integration = await self.get_by_id(integration_id)
+        if integration is None:
+            return None
+        return self._to_response(integration)
 
     async def list_all(self) -> list[IntegrationResponse]:
         result = await self._session.execute(select(Integration))
@@ -73,12 +79,14 @@ class IntegrationRepository:
         self,
         integration_id: str,
         status: str,
+        direction: str = "inbound",
         source_ref: str | None = None,
         bug_id: str | None = None,
         error_message: str | None = None,
     ) -> None:
         event = IntegrationEvent(
             integration_id=uuid.UUID(integration_id),
+            direction=direction,
             status=status,
             source_ref=source_ref,
             bug_id=uuid.UUID(bug_id) if bug_id else None,
@@ -86,10 +94,15 @@ class IntegrationRepository:
         )
         self._session.add(event)
         if status == "created":
-            integration = await self._session.get(Integration, uuid.UUID(integration_id))
-            if integration is not None:
-                integration.total_received += 1
-                integration.last_received_at = datetime.now(timezone.utc)
+            # Use atomic SQL UPDATE to avoid read-then-increment race condition
+            await self._session.execute(
+                update(Integration)
+                .where(Integration.id == uuid.UUID(integration_id))
+                .values(
+                    total_received=Integration.total_received + 1,
+                    last_received_at=datetime.now(timezone.utc),
+                )
+            )
         await self._session.commit()
 
     async def is_duplicate(self, integration_id: str, source_ref: str) -> bool:
