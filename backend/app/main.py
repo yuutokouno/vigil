@@ -1,8 +1,11 @@
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.connectors.hubspot.handler import HubSpotConnector
+from app.connectors.notion.handler import NotionConnector
+from app.connectors.notion.polling import poll_notion_integrations
 from app.connectors.registry import register_connector
 from app.connectors.slack.handler import SlackConnector
 from app.presentation.analytics import router as analytics_router
@@ -15,6 +18,8 @@ from app.presentation.webhooks import router as webhooks_router
 from app.presentation.workflow_columns import router as workflow_columns_router
 
 app = FastAPI(title="Vigil", description="Bug tracking dashboard for archaive")
+
+scheduler = AsyncIOScheduler()
 
 app.add_middleware(
     CORSMiddleware,
@@ -40,6 +45,14 @@ async def startup() -> None:
     # Register connector sentinels (actual credentials come from DB at request time)
     register_connector("slack", SlackConnector.__new__(SlackConnector))
     register_connector("hubspot", HubSpotConnector())
+    register_connector("notion", NotionConnector())
+    scheduler.add_job(poll_notion_integrations, "interval", minutes=5, id="notion_poll")
+    scheduler.start()
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    scheduler.shutdown()
 
 
 @app.get("/api/health")

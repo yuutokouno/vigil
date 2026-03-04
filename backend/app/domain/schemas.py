@@ -33,6 +33,7 @@ class Source(str, Enum):
     MANUAL = "manual"
     SLACK = "slack"
     HUBSPOT = "hubspot"
+    NOTION = "notion"
     TEST = "test"
 
 
