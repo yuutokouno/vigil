@@ -1,30 +1,34 @@
 "use client";
 
 import { Button } from "@/src/shared/ui";
-import { STATUS_LABELS, type Bug } from "@/src/entities/bug/model/types";
+import type { Bug } from "@/src/entities/bug/model/types";
+import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 import { useUpdateStatus } from "../model/use-update-status";
 
 type StatusSelectProps = {
   bug: Bug;
   onUpdated: (bug: Bug) => void;
+  allColumns: WorkflowColumn[];
 };
 
-export function StatusSelect({ bug, onUpdated }: StatusSelectProps) {
-  const { changeStatus, allowedTransitions, isUpdating, error } =
-    useUpdateStatus(bug, onUpdated);
+export function StatusSelect({ bug, onUpdated, allColumns }: StatusSelectProps) {
+  const { changeStatus, allowedColumns, isUpdating, error } =
+    useUpdateStatus(bug, onUpdated, allColumns);
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {allowedTransitions.map((status) => (
+        {allowedColumns.map((column) => (
           <Button
-            key={status}
+            key={column.slug}
             size="sm"
             variant="outline"
             disabled={isUpdating}
-            onClick={() => changeStatus(status)}
+            onClick={() => changeStatus(column.slug)}
           >
-            {isUpdating ? "変更中..." : `→ ${STATUS_LABELS[status]}`}
+            {isUpdating
+              ? "\u5909\u66f4\u4e2d..."
+              : `\u2192 ${column.name}`}
           </Button>
         ))}
       </div>

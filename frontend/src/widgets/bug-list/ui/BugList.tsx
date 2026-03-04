@@ -5,6 +5,8 @@ import { Button } from "@/src/shared/ui";
 import { BugTable } from "@/src/entities/bug/ui/BugTable";
 import { listBugs } from "@/src/entities/bug/api/bug-api";
 import type { Bug, BugListParams } from "@/src/entities/bug/model/types";
+import { listWorkflowColumns } from "@/src/entities/workflow-column/api/workflow-column-api";
+import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 import { FilterBar } from "@/src/features/filter-bugs/ui/FilterBar";
 import { useFilters } from "@/src/features/filter-bugs/model/use-filters";
 
@@ -24,6 +26,7 @@ export function BugList({ initialFilters }: BugListProps) {
   } = useFilters();
 
   const [bugs, setBugs] = useState<Bug[]>([]);
+  const [workflowColumns, setWorkflowColumns] = useState<WorkflowColumn[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -56,6 +59,10 @@ export function BugList({ initialFilters }: BugListProps) {
     fetchBugs();
   }, [fetchBugs]);
 
+  useEffect(() => {
+    listWorkflowColumns().then(setWorkflowColumns).catch(() => {});
+  }, []);
+
   const totalPages = Math.ceil(total / (filters.limit ?? 20));
   const currentPage = filters.page ?? 1;
 
@@ -71,6 +78,7 @@ export function BugList({ initialFilters }: BugListProps) {
         onCategoryChange={setCategory}
         onSearchChange={setSearch}
         onReset={resetFilters}
+        workflowColumns={workflowColumns.length > 0 ? workflowColumns : undefined}
       />
 
       {isLoading ? (

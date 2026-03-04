@@ -5,13 +5,16 @@ export const STATUS = {
   closed: "closed",
 } as const;
 
-export type Status = (typeof STATUS)[keyof typeof STATUS];
+// Status is now any string (workflow column slug)
+export type Status = string;
 
-export const STATUS_LABELS: Record<Status, string> = {
-  open: "未対応",
-  in_progress: "対応中",
-  in_review: "検証待ち",
-  closed: "クローズ",
+// Fallback labels for the built-in statuses.
+// For dynamic slugs added by users, look up WorkflowColumn.name instead.
+export const STATUS_LABELS: Record<string, string> = {
+  open: "\u672a\u5bfe\u5fdc",
+  in_progress: "\u5bfe\u5fdc\u4e2d",
+  in_review: "\u691c\u8a3c\u5f85\u3061",
+  closed: "\u30af\u30ed\u30fc\u30ba",
 };
 
 export const SEVERITY = {
@@ -104,7 +107,7 @@ export type BugCreate = {
 export type BugUpdate = {
   title?: string | null;
   description?: string | null;
-  status?: Status | null;
+  status?: string | null;
   severity?: Severity | null;
   priority?: Priority | null;
   category?: Category | null;
@@ -128,7 +131,7 @@ export type BugStats = {
 };
 
 export type BugListParams = {
-  status?: Status;
+  status?: string;
   severity?: Severity;
   category?: Category;
   search?: string;

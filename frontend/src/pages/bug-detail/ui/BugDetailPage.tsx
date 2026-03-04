@@ -8,7 +8,7 @@ import type { Bug } from "@/src/entities/bug/model/types";
 
 export function BugDetailPage() {
   const params = useParams();
-  const id = params.id as string;
+  const id = params?.id as string;
 
   const [bug, setBug] = useState<Bug | null>(null);
   const [isLoading, setIsLoading] = useState(true);

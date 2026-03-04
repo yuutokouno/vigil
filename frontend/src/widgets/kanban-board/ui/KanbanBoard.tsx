@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -10,15 +10,14 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { listBugs, updateBug } from "@/src/entities/bug/api/bug-api";
-import type { Bug, Status, Severity } from "@/src/entities/bug/model/types";
-import { STATUS_LABELS } from "@/src/entities/bug/model/types";
+import type { Bug, Severity } from "@/src/entities/bug/model/types";
 import { listMilestones } from "@/src/entities/milestone/api/milestone-api";
 import type { Milestone } from "@/src/entities/milestone/model/types";
+import { listWorkflowColumns } from "@/src/entities/workflow-column/api/workflow-column-api";
+import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 import { KanbanColumn } from "@/src/features/kanban/ui/KanbanColumn";
 import { useKanbanDnd, type MoveRecord } from "@/src/features/kanban/model/use-kanban-dnd";
 import { cn } from "@/lib/utils";
-
-const STATUS_ORDER: Status[] = ["open", "in_progress", "in_review", "closed"];
 
 const SEVERITY_DOT: Record<Severity, string> = {
   critical: "bg-severity-critical",
@@ -32,6 +31,7 @@ const UNDO_TIMEOUT_MS = 5000;
 export function KanbanBoard() {
   const [bugs, setBugs] = useState<Bug[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [columns, setColumns] = useState<WorkflowColumn[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [undoRecord, setUndoRecord] = useState<MoveRecord | null>(null);
 
@@ -56,10 +56,21 @@ export function KanbanBoard() {
   }, [fetchBugs]);
 
   useEffect(() => {
+    listWorkflowColumns().then(setColumns).catch(() => setColumns([]));
+  }, []);
+
+  useEffect(() => {
     listMilestones().then(setMilestones).catch((err) => {
       console.error("Failed to load milestones:", err);
     });
   }, []);
+
+  const validSlugs = useMemo(() => columns.map((c) => c.slug), [columns]);
+
+  const slugToName = useMemo(
+    () => Object.fromEntries(columns.map((c) => [c.slug, c.name])),
+    [columns]
+  );
 
   const dismissUndo = useCallback(() => {
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
@@ -99,7 +110,7 @@ export function KanbanBoard() {
   }, []);
 
   const { activeId, handleDragStart, handleDragOver, handleDragEnd } =
-    useKanbanDnd(bugs, setBugs, handleMoveComplete);
+    useKanbanDnd(bugs, setBugs, handleMoveComplete, validSlugs);
 
   // 8px activation distance prevents accidental drags on click
   const sensors = useSensors(
@@ -124,11 +135,11 @@ export function KanbanBoard() {
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-4 overflow-x-auto pb-4">
-          {STATUS_ORDER.map((status) => (
+          {columns.map((column) => (
             <KanbanColumn
-              key={status}
-              status={status}
-              bugs={bugs.filter((b) => b.status === status)}
+              key={column.slug}
+              column={column}
+              bugs={bugs.filter((b) => b.status === column.slug)}
               milestones={milestones}
             />
           ))}
@@ -162,7 +173,7 @@ export function KanbanBoard() {
               {undoRecord.bugTitle}
             </span>
             {" \u2192 "}
-            {STATUS_LABELS[undoRecord.toStatus]}
+            {slugToName[undoRecord.toStatus] ?? undoRecord.toStatus}
           </span>
           <button
             onClick={handleUndo}

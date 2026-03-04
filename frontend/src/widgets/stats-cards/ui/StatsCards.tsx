@@ -1,37 +1,39 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/shared/ui";
-import { STATUS_LABELS, type BugStats, type Status } from "@/src/entities/bug/model/types";
+import type { BugStats } from "@/src/entities/bug/model/types";
+import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 
 type StatsCardsProps = {
   stats: BugStats;
-  onStatusClick?: (status: Status) => void;
+  columns: WorkflowColumn[];
+  onStatusClick?: (status: string) => void;
 };
 
-const STATUS_ORDER: Status[] = ["open", "in_progress", "in_review", "closed"];
-
-const STATUS_COLORS: Record<Status, string> = {
+const STATUS_COLORS: Record<string, string> = {
   open:        "text-status-open",
   in_progress: "text-status-in-progress",
   in_review:   "text-status-in-review",
   closed:      "text-status-closed",
 };
 
-export function StatsCards({ stats, onStatusClick }: StatsCardsProps) {
+const DEFAULT_COLOR = "text-foreground";
+
+export function StatsCards({ stats, columns, onStatusClick }: StatsCardsProps) {
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      {STATUS_ORDER.map((status) => (
+    <div className="flex flex-wrap gap-4">
+      {columns.map((column) => (
         <Card
-          key={status}
-          className={onStatusClick ? "cursor-pointer transition-colors hover:bg-secondary" : ""}
-          onClick={() => onStatusClick?.(status)}
+          key={column.slug}
+          className={`min-w-[120px] flex-1 ${onStatusClick ? "cursor-pointer transition-colors hover:bg-secondary" : ""}`}
+          onClick={() => onStatusClick?.(column.slug)}
         >
           <CardHeader className="pb-2">
             <CardTitle className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              {STATUS_LABELS[status]}
+              {column.name}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={`text-2xl font-semibold ${STATUS_COLORS[status]}`}>
-              {stats.by_status[status] ?? 0}
+            <p className={`text-2xl font-semibold ${STATUS_COLORS[column.slug] ?? DEFAULT_COLOR}`}>
+              {stats.by_status[column.slug] ?? 0}
             </p>
           </CardContent>
         </Card>

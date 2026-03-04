@@ -2,20 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { getBugStats } from "@/src/entities/bug/api/bug-api";
-import type { BugStats, Status } from "@/src/entities/bug/model/types";
+import type { BugStats } from "@/src/entities/bug/model/types";
+import { listWorkflowColumns } from "@/src/entities/workflow-column/api/workflow-column-api";
+import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 import { ViewToggle } from "@/src/features/view-toggle/ui/ViewToggle";
 import { StatsCards } from "@/src/widgets/stats-cards/ui/StatsCards";
 import { BugList } from "@/src/widgets/bug-list/ui/BugList";
 
 export function DashboardPage() {
   const [stats, setStats] = useState<BugStats | null>(null);
-  const [statusFilter, setStatusFilter] = useState<Status | undefined>();
+  const [columns, setColumns] = useState<WorkflowColumn[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string | undefined>();
 
   useEffect(() => {
     getBugStats().then(setStats).catch(() => {});
+    listWorkflowColumns().then(setColumns).catch(() => {});
   }, []);
 
-  const handleStatusClick = (status: Status) => {
+  const handleStatusClick = (status: string) => {
     setStatusFilter((prev) => (prev === status ? undefined : status));
   };
 
@@ -26,8 +30,8 @@ export function DashboardPage() {
         <ViewToggle />
       </div>
 
-      {stats && (
-        <StatsCards stats={stats} onStatusClick={handleStatusClick} />
+      {stats && columns.length > 0 && (
+        <StatsCards stats={stats} columns={columns} onStatusClick={handleStatusClick} />
       )}
 
       <BugList
