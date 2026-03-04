@@ -126,7 +126,7 @@ export function AnalyticsPage() {
             ].map((kpi) => (
               <Card key={kpi.label}>
                 <CardContent className="pt-4">
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
                     {kpi.label}
                   </p>
                   <p className="mt-1 text-2xl font-semibold text-foreground">
