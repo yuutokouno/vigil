@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/shared/ui";
 import { STATUS_LABELS, type BugStats, type Status } from "@/src/entities/bug/model/types";
 
