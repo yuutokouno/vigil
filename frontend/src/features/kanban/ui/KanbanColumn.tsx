@@ -10,6 +10,7 @@ import {
   type Bug,
   type Status,
 } from "@/src/entities/bug/model/types";
+import type { Milestone } from "@/src/entities/milestone/model/types";
 import { KanbanCard } from "./KanbanCard";
 import { cn } from "@/lib/utils";
 
@@ -23,17 +24,18 @@ const STATUS_HEADER_COLORS: Record<Status, string> = {
 type KanbanColumnProps = {
   status: Status;
   bugs: Bug[];
+  milestones?: Milestone[];
   isOver?: boolean;
 };
 
-export function KanbanColumn({ status, bugs, isOver }: KanbanColumnProps) {
+export function KanbanColumn({ status, bugs, milestones, isOver }: KanbanColumnProps) {
   const { setNodeRef } = useDroppable({ id: status });
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "flex min-h-[200px] flex-col rounded-lg border border-t-4 bg-muted/30 p-3",
+        "flex min-h-[200px] min-w-[280px] flex-col rounded-lg border border-t-4 bg-muted/30 p-3",
         STATUS_HEADER_COLORS[status],
         isOver && "ring-2 ring-primary"
       )}
@@ -48,9 +50,10 @@ export function KanbanColumn({ status, bugs, isOver }: KanbanColumnProps) {
         strategy={verticalListSortingStrategy}
       >
         <div className="flex flex-col gap-2">
-          {bugs.map((bug) => (
-            <KanbanCard key={bug.id} bug={bug} />
-          ))}
+          {bugs.map((bug) => {
+            const milestone = milestones?.find((m) => m.id === bug.milestone_id) ?? undefined;
+            return <KanbanCard key={bug.id} bug={bug} milestone={milestone} />;
+          })}
         </div>
       </SortableContext>
     </div>

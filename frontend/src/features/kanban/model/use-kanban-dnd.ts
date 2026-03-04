@@ -4,13 +4,6 @@ import type { DragEndEvent } from "@dnd-kit/core";
 import { updateBug } from "@/src/entities/bug/api/bug-api";
 import type { Bug, Status } from "@/src/entities/bug/model/types";
 
-const VALID_TRANSITIONS: Record<Status, Status[]> = {
-  open: ["in_progress"],
-  in_progress: ["in_review"],
-  in_review: ["closed"],
-  closed: ["open"],
-};
-
 export function useKanbanDnd(
   bugs: Bug[],
   onBugsChange: (bugs: Bug[]) => void
@@ -25,11 +18,7 @@ export function useKanbanDnd(
     const bug = bugs.find((b) => b.id === bugId);
     if (!bug || bug.status === newStatus) return;
 
-    // Check transition validity
-    const allowed = VALID_TRANSITIONS[bug.status] ?? [];
-    if (!allowed.includes(newStatus)) return;
-
-    // Optimistic update
+    // Optimistic update — any status transition is allowed
     const updatedBugs = bugs.map((b) =>
       b.id === bugId ? { ...b, status: newStatus } : b
     );
@@ -38,8 +27,7 @@ export function useKanbanDnd(
     try {
       await updateBug(bugId, { status: newStatus });
     } catch {
-      // Revert
-      onBugsChange(bugs);
+      onBugsChange(bugs); // revert on error
     }
   };
 
