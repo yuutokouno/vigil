@@ -148,6 +148,7 @@ class PostgresBugRepository(BugRepository):
             milestone_id=str(bug.milestone_id) if bug.milestone_id else None,
             slack_message_url=bug.slack_message_url,
             github_issue_url=bug.github_issue_url,
+            external_ref=bug.external_ref,
             created_at=bug.created_at,
             updated_at=bug.updated_at,
             closed_at=bug.closed_at,

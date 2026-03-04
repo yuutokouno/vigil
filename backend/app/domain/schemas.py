@@ -51,6 +51,8 @@ class BugCreate(BaseModel):
     source: Source = Source.MANUAL
     sprint: str | None = None
     milestone_id: str | None = None
+    slack_message_url: str | None = None
+    external_ref: str | None = None
 
 
 class BugUpdate(BaseModel):
@@ -87,6 +89,7 @@ class BugResponse(BaseModel):
     milestone_id: str | None
     slack_message_url: str | None
     github_issue_url: str | None
+    external_ref: str | None
     created_at: datetime
     updated_at: datetime
     closed_at: datetime | None
