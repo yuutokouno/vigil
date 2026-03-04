@@ -17,7 +17,7 @@ export function useAuth() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const tokenFromUrl = searchParams.get("token");
+    const tokenFromUrl = searchParams?.get("token");
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
       router.replace("/");

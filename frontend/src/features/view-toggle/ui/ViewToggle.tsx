@@ -19,7 +19,7 @@ export function ViewToggle() {
       {VIEWS.map((view) => {
         const isActive =
           view.path === "/"
-            ? pathname === "/" || pathname.startsWith("/bugs")
+            ? pathname === "/" || pathname?.startsWith("/bugs")
             : pathname === view.path;
 
         return (
