@@ -1,9 +1,13 @@
 # backend/app/connectors/notion/handler.py
+import logging
+
 import httpx
 from fastapi import Request
 
 from app.connectors.base import ConnectorABC
 from app.domain.schemas import BugCreate, Priority, Severity, Source
+
+logger = logging.getLogger(__name__)
 
 NOTION_API = "https://api.notion.com/v1"
 NOTION_VERSION = "2022-06-28"
@@ -15,10 +19,13 @@ class NotionConnector(ConnectorABC):
         return True  # Notion uses polling, not push webhooks
 
     async def should_process(self, event_data: dict, trigger_rules: dict) -> bool:
-        return True  # Filtering done in polling.py before calling transform
+        # Notion uses polling; page filtering is handled in polling.py by database_id selection.
+        # All pages returned by query_database are processed.
+        return True
 
     async def transform(self, event_data: dict, field_mappings: list[dict]) -> BugCreate:
         """Convert a Notion page object to BugCreate."""
+        # field_mappings are intentionally unused in V1; Notion fields are mapped by property type.
         props = event_data.get("properties", {})
 
         def get_title(prop: dict) -> str:
@@ -97,7 +104,8 @@ class NotionConnector(ConnectorABC):
                 resp.raise_for_status()
                 data = resp.json()
                 return data.get("results", [])
-            except httpx.HTTPError:
+            except httpx.HTTPError as exc:
+                logger.warning("Notion query_database failed for database %s: %s", database_id, exc)
                 return []
 
     async def update_page(self, token: str, page_id: str, properties: dict) -> None:
@@ -113,5 +121,5 @@ class NotionConnector(ConnectorABC):
                     headers=headers,
                     json={"properties": properties},
                 )
-            except httpx.HTTPError:
-                pass
+            except httpx.HTTPError as exc:
+                logger.warning("Failed to update Notion page %s: %s", page_id, exc)

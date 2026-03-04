@@ -1,5 +1,6 @@
 # backend/app/connectors/notion/polling.py
 import logging
+from datetime import timezone as _tz
 
 from app.connectors.encryption import decrypt_credentials
 from app.connectors.notion.handler import NotionConnector
@@ -29,7 +30,7 @@ async def poll_notion_integrations() -> None:
                     continue
 
                 last_ts = (
-                    integration.last_received_at.isoformat()
+                    integration.last_received_at.astimezone(_tz.utc).isoformat()
                     if integration.last_received_at
                     else None
                 )
