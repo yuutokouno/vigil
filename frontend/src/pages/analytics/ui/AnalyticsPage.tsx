@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/shared/ui";
 import { fetchAnalytics } from "@/src/entities/analytics/api/analytics-api";
 import type { AnalyticsResponse } from "@/src/entities/analytics/model/types";
@@ -12,9 +12,9 @@ import { MilestoneProgress } from "./MilestoneProgress";
 type Period = "7d" | "30d" | "90d";
 
 const PERIOD_LABELS: Record<Period, string> = {
-  "7d": "7日",
-  "30d": "30日",
-  "90d": "90日",
+  "7d": "7\u65e5",
+  "30d": "30\u65e5",
+  "90d": "90\u65e5",
 };
 
 export function AnalyticsPage() {
@@ -46,21 +46,8 @@ export function AnalyticsPage() {
     load();
   }, [load]);
 
-  const kpiCards = useMemo(() => {
-    if (!data) return [];
-    const totalCreated = data.current.daily.reduce((s, d) => s + d.created, 0);
-    const totalClosed = data.current.daily.reduce((s, d) => s + d.closed, 0);
-    return [
-      { label: "発生バグ（合計）", value: totalCreated },
-      { label: "解決バグ（合計）", value: totalClosed },
-      { label: "平均クローズ時間", value: `${data.current.avg_close_hours}h` },
-      { label: "アクティブマイルストーン", value: data.milestones.length },
-    ] as { label: string; value: string | number }[];
-  }, [data]);
-
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold tracking-tight">Analytics</h1>
         <div className="flex items-center gap-3">
@@ -87,7 +74,7 @@ export function AnalyticsPage() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            前期間と比較
+            {"\u524d\u671f\u9593\u3068\u6bd4\u8f03"}
           </button>
         </div>
       </div>
@@ -95,30 +82,46 @@ export function AnalyticsPage() {
       {isError && (
         <div className="flex flex-col items-center gap-3 py-8">
           <p className="text-[12px] text-muted-foreground">
-            データを取得できませんでした
+            {"\u30c7\u30fc\u30bf\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f"}
           </p>
           <button
             onClick={load}
             className="rounded-md border border-border px-4 py-1.5 text-[12px] text-foreground transition-colors hover:bg-secondary"
           >
-            再試行
+            {"\u518d\u8a66\u884c"}
           </button>
         </div>
       )}
 
       {isLoading ? (
         <p className="py-16 text-center text-[12px] text-muted-foreground">
-          読み込み中...
+          {"\u8aad\u307f\u8fbc\u307f\u4e2d..."}
         </p>
       ) : !isError && !data ? (
         <p className="py-16 text-center text-[12px] text-muted-foreground">
-          データを取得できませんでした
+          {"\u30c7\u30fc\u30bf\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f"}
         </p>
       ) : !isError && data ? (
         <>
-          {/* KPI cards */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {kpiCards.map((kpi) => (
+            {[
+              {
+                label: "\u767a\u751f\u30d0\u30b0\uff08\u5408\u8a08\uff09",
+                value: data.current.daily.reduce((s, d) => s + d.created, 0),
+              },
+              {
+                label: "\u89e3\u6c7a\u30d0\u30b0\uff08\u5408\u8a08\uff09",
+                value: data.current.daily.reduce((s, d) => s + d.closed, 0),
+              },
+              {
+                label: "\u5e73\u5747\u30af\u30ed\u30fc\u30ba\u6642\u9593",
+                value: `${data.current.avg_close_hours}h`,
+              },
+              {
+                label: "\u30a2\u30af\u30c6\u30a3\u30d6\u30de\u30a4\u30eb\u30b9\u30c8\u30fc\u30f3",
+                value: data.milestones.length,
+              },
+            ].map((kpi) => (
               <Card key={kpi.label}>
                 <CardContent className="pt-4">
                   <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -132,11 +135,10 @@ export function AnalyticsPage() {
             ))}
           </div>
 
-          {/* Trend chart */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-[13px]">
-                バグ発生 / 解決トレンド
+                {"\u30d0\u30b0\u767a\u751f / \u89e3\u6c7a\u30c8\u30ec\u30f3\u30c9"}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -147,11 +149,10 @@ export function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          {/* Severity + Assignee */}
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-[13px]">Severity 別内訳</CardTitle>
+                <CardTitle className="text-[13px]">Severity {"\u5225\u5185\u8a33"}</CardTitle>
               </CardHeader>
               <CardContent>
                 <SeverityChart bySeverity={data.current.by_severity} />
@@ -161,7 +162,7 @@ export function AnalyticsPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-[13px]">
-                  担当者別 クローズ数
+                  {"\u62c5\u5f53\u8005\u5225 \u30af\u30ed\u30fc\u30ba\u6570"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -170,17 +171,18 @@ export function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* Milestone progress */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-[13px]">マイルストーン進捗</CardTitle>
+              <CardTitle className="text-[13px]">
+                {"\u30de\u30a4\u30eb\u30b9\u30c8\u30fc\u30f3\u9032\u6357"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <MilestoneProgress milestones={data.milestones} />
             </CardContent>
           </Card>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
