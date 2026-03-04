@@ -10,6 +10,7 @@ import {
   updateIntegration,
 } from "@/src/entities/integration/api/integration-api";
 import type { Integration } from "@/src/entities/integration/model/types";
+import { IntegrationWizard } from "@/src/features/integration-wizard/ui/IntegrationWizard";
 
 export function IntegrationsPage() {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
@@ -88,14 +89,12 @@ export function IntegrationsPage() {
         </div>
       )}
 
-      {/* Wizard placeholder — implemented in Task 11 */}
       {wizardOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="rounded-lg bg-background p-6 border">
-            <p className="text-sm text-muted-foreground mb-3">ウィザードは Task 11 で実装されます</p>
-            <Button onClick={() => setWizardOpen(false)} className="cursor-pointer">閉じる</Button>
-          </div>
-        </div>
+        <IntegrationWizard
+          editingIntegration={editingIntegration}
+          onSuccess={load}
+          onClose={() => setWizardOpen(false)}
+        />
       )}
     </div>
   );
