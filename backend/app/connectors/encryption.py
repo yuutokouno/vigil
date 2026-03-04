@@ -1,13 +1,20 @@
+# backend/app/connectors/encryption.py
 import json
+from functools import lru_cache
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 
 from app.config import settings
 
 
+class CredentialDecryptionError(Exception):
+    """Raised when stored credentials cannot be decrypted or deserialized."""
+
+
+@lru_cache(maxsize=1)
 def _get_fernet() -> Fernet:
-    key = settings.encryption_key.encode()
-    return Fernet(key)
+    """Return a cached Fernet instance built from the configured encryption key."""
+    return Fernet(settings.encryption_key.encode())
 
 
 def encrypt_credentials(credentials: dict) -> bytes:
@@ -17,6 +24,13 @@ def encrypt_credentials(credentials: dict) -> bytes:
 
 
 def decrypt_credentials(encrypted: bytes) -> dict:
-    """Decrypt Fernet-encrypted bytes and deserialize JSON."""
-    plaintext = _get_fernet().decrypt(encrypted)
-    return json.loads(plaintext.decode())
+    """Decrypt Fernet-encrypted bytes and deserialize JSON.
+
+    Raises:
+        CredentialDecryptionError: if the ciphertext is invalid or cannot be parsed.
+    """
+    try:
+        plaintext = _get_fernet().decrypt(encrypted)
+        return json.loads(plaintext.decode())
+    except (InvalidToken, json.JSONDecodeError) as exc:
+        raise CredentialDecryptionError("Failed to decrypt credentials") from exc
