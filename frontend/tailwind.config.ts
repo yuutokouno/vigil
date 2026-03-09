@@ -48,12 +48,24 @@ const config: Config = {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
-  			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
+  			sidebar: {
+  				DEFAULT: 'hsl(var(--sidebar))',
+  				foreground: 'hsl(var(--sidebar-foreground))',
+  				border: 'hsl(var(--sidebar-border))',
+  				accent: 'hsl(var(--sidebar-accent))',
+  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+  			},
+  			severity: {
+  				critical: 'hsl(var(--severity-critical))',
+  				high: 'hsl(var(--severity-high))',
+  				medium: 'hsl(var(--severity-medium))',
+  				low: 'hsl(var(--severity-low))',
+  			},
+  			status: {
+  				open:          'hsl(var(--status-open))',
+  				'in-progress': 'hsl(var(--status-in-progress))',
+  				'in-review':   'hsl(var(--status-in-review))',
+  				closed:        'hsl(var(--status-closed))',
   			}
   		}
   	}

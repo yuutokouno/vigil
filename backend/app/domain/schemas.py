@@ -1,14 +1,8 @@
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
-
-
-class Status(str, Enum):
-    OPEN = "open"
-    IN_PROGRESS = "in_progress"
-    IN_REVIEW = "in_review"
-    CLOSED = "closed"
 
 
 class Severity(str, Enum):
@@ -39,6 +33,7 @@ class Source(str, Enum):
     MANUAL = "manual"
     SLACK = "slack"
     HUBSPOT = "hubspot"
+    NOTION = "notion"
     TEST = "test"
 
 
@@ -56,17 +51,21 @@ class BugCreate(BaseModel):
     assigned_to: str | None = None
     source: Source = Source.MANUAL
     sprint: str | None = None
+    milestone_id: str | None = None
+    slack_message_url: str | None = None
+    external_ref: str | None = None
 
 
 class BugUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
-    status: Status | None = None
+    status: str | None = None
     severity: Severity | None = None
     priority: Priority | None = None
     category: Category | None = None
     assigned_to: str | None = None
     sprint: str | None = None
+    milestone_id: str | None = None
     closed_at: datetime | None = None
 
     model_config = ConfigDict(extra="allow")
@@ -80,7 +79,7 @@ class BugResponse(BaseModel):
     expected_behavior: str | None
     actual_behavior: str | None
     environment: str | None
-    status: Status
+    status: str
     severity: Severity
     priority: Priority
     category: Category | None
@@ -88,8 +87,10 @@ class BugResponse(BaseModel):
     assigned_to: str | None
     source: Source
     sprint: str | None
+    milestone_id: str | None
     slack_message_url: str | None
     github_issue_url: str | None
+    external_ref: str | None
     created_at: datetime
     updated_at: datetime
     closed_at: datetime | None
@@ -98,7 +99,7 @@ class BugResponse(BaseModel):
 
 
 class BugListParams(BaseModel):
-    status: Status | None = None
+    status: str | None = None
     severity: Severity | None = None
     category: Category | None = None
     search: str | None = None
@@ -120,3 +121,122 @@ class BugStatsResponse(BaseModel):
     by_status: dict[str, int]
     by_severity: dict[str, int]
     by_category: dict[str, int]
+
+
+class MilestoneStatus(str, Enum):
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class MilestoneCreate(BaseModel):
+    title: str
+    description: str | None = None
+    due_date: datetime | None = None
+
+
+class MilestoneUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    due_date: datetime | None = None
+    status: MilestoneStatus | None = None
+
+
+class MilestoneResponse(BaseModel):
+    id: str
+    title: str
+    description: str | None
+    due_date: datetime | None
+    status: MilestoneStatus
+    created_at: datetime
+    updated_at: datetime
+    total_bugs: int = 0
+    closed_bugs: int = 0
+
+    model_config = {"from_attributes": True}
+
+
+class UserResponse(BaseModel):
+    id: str
+    github_id: str
+    name: str
+    email: str | None
+    avatar_url: str | None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class WorkflowColumnCreate(BaseModel):
+    name: str
+    slug: str
+
+
+class WorkflowColumnUpdate(BaseModel):
+    name: str | None = None
+    position: int | None = None
+
+
+class WorkflowColumnResponse(BaseModel):
+    id: str
+    name: str
+    slug: str
+    position: int
+    is_fixed: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class IntegrationCreate(BaseModel):
+    name: str
+    source_type: str
+    direction: str = "inbound"
+    credentials: dict[str, str]
+    trigger_rules: dict[str, Any] = {}
+    field_mappings: list[dict[str, Any]] = []
+
+
+class IntegrationUpdate(BaseModel):
+    name: str | None = None
+    is_active: bool | None = None
+    credentials: dict[str, str] | None = None
+    trigger_rules: dict[str, Any] | None = None
+    field_mappings: list[dict[str, Any]] | None = None
+
+
+class IntegrationResponse(BaseModel):
+    id: str
+    name: str
+    source_type: str
+    direction: str
+    is_active: bool
+    trigger_rules: dict[str, Any]
+    field_mappings: list[dict[str, Any]]
+    last_received_at: datetime | None
+    total_received: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class IntegrationEventResponse(BaseModel):
+    id: str
+    integration_id: str
+    direction: str
+    status: str
+    source_ref: str | None
+    bug_id: str | None
+    error_message: str | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TestConnectionResponse(BaseModel):
+    ok: bool
+
+
+class SchemaFetchRequest(BaseModel):
+    credentials: dict[str, str]

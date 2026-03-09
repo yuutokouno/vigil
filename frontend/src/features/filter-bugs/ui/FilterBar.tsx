@@ -13,21 +13,22 @@ import {
   STATUS_LABELS,
   SEVERITY_LABELS,
   CATEGORY_LABELS,
-  type Status,
   type Severity,
   type Category,
 } from "@/src/entities/bug/model/types";
+import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 
 type FilterBarProps = {
-  status: Status | undefined;
+  status: string | undefined;
   severity: Severity | undefined;
   category: Category | undefined;
   search: string | undefined;
-  onStatusChange: (status: Status | undefined) => void;
+  onStatusChange: (status: string | undefined) => void;
   onSeverityChange: (severity: Severity | undefined) => void;
   onCategoryChange: (category: Category | undefined) => void;
   onSearchChange: (search: string) => void;
   onReset: () => void;
+  workflowColumns?: WorkflowColumn[];
 };
 
 const ALL_VALUE = "__all__";
@@ -42,7 +43,11 @@ export function FilterBar({
   onCategoryChange,
   onSearchChange,
   onReset,
+  workflowColumns,
 }: FilterBarProps) {
+  const statusOptions = workflowColumns
+    ? workflowColumns.map((c) => ({ value: c.slug, label: c.name }))
+    : Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }));
   const hasFilters = status || severity || category || search;
 
   return (
@@ -56,14 +61,14 @@ export function FilterBar({
 
       <Select
         value={status ?? ALL_VALUE}
-        onValueChange={(v) => onStatusChange(v === ALL_VALUE ? undefined : (v as Status))}
+        onValueChange={(v) => onStatusChange(v === ALL_VALUE ? undefined : v)}
       >
         <SelectTrigger className="w-36">
           <SelectValue placeholder="ステータス" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL_VALUE}>すべて</SelectItem>
-          {Object.entries(STATUS_LABELS).map(([value, label]) => (
+          {statusOptions.map(({ value, label }) => (
             <SelectItem key={value} value={value}>
               {label}
             </SelectItem>

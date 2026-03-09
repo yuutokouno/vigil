@@ -1,3 +1,5 @@
+import { getToken } from "@/src/shared/lib/auth-token";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 type RequestOptions = {
@@ -28,6 +30,10 @@ export async function apiClient<T>(
   }
 
   const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   if (body) {
     headers["Content-Type"] = "application/json";
   }

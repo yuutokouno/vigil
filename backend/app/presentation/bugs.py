@@ -11,14 +11,9 @@ from app.domain.schemas import (
     BugUpdate,
     Category,
     Severity,
-    Status,
 )
 from app.repository.postgres import PostgresBugRepository
-from app.usecase.bug_usecase import (
-    BugNotFoundError,
-    BugUsecase,
-    InvalidStatusTransitionError,
-)
+from app.usecase.bug_usecase import BugNotFoundError, BugUsecase
 
 router = APIRouter(prefix="/api/bugs", tags=["bugs"])
 
@@ -38,7 +33,7 @@ async def create_bug(
 
 @router.get("", response_model=BugListResponse)
 async def list_bugs(
-    status: Status | None = None,
+    status: str | None = None,
     severity: Severity | None = None,
     category: Category | None = None,
     search: str | None = None,
@@ -89,11 +84,6 @@ async def update_bug(
         return await usecase.update_bug(bug_id, bug)
     except BugNotFoundError:
         raise HTTPException(status_code=404, detail="Bug not found")
-    except InvalidStatusTransitionError as e:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Invalid status transition: {e.current} -> {e.target}",
-        )
 
 
 @router.delete("/{bug_id}", status_code=204)

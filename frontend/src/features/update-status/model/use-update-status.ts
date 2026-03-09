@@ -2,22 +2,21 @@
 
 import { useState } from "react";
 import { updateBug } from "@/src/entities/bug/api/bug-api";
-import type { Bug, Status } from "@/src/entities/bug/model/types";
+import type { Bug } from "@/src/entities/bug/model/types";
+import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 
-const VALID_TRANSITIONS: Record<Status, Status[]> = {
-  open: ["in_progress"],
-  in_progress: ["in_review"],
-  in_review: ["closed"],
-  closed: ["open"],
-};
-
-export function useUpdateStatus(bug: Bug, onUpdated: (bug: Bug) => void) {
+export function useUpdateStatus(
+  bug: Bug,
+  onUpdated: (bug: Bug) => void,
+  allColumns: WorkflowColumn[]
+) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const allowedTransitions = VALID_TRANSITIONS[bug.status] ?? [];
+  // All columns except the current one are valid targets
+  const allowedColumns = allColumns.filter((c) => c.slug !== bug.status);
 
-  const changeStatus = async (newStatus: Status) => {
+  const changeStatus = async (newStatus: string) => {
     setIsUpdating(true);
     setError(null);
     try {
@@ -30,5 +29,5 @@ export function useUpdateStatus(bug: Bug, onUpdated: (bug: Bug) => void) {
     }
   };
 
-  return { changeStatus, allowedTransitions, isUpdating, error };
+  return { changeStatus, allowedColumns, isUpdating, error };
 }

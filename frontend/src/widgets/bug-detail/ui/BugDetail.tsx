@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/src/shared/ui";
 import { StatusBadge } from "@/src/entities/bug/ui/StatusBadge";
@@ -8,6 +8,8 @@ import { SeverityBadge } from "@/src/entities/bug/ui/SeverityBadge";
 import { StatusSelect } from "@/src/features/update-status/ui/StatusSelect";
 import type { Bug } from "@/src/entities/bug/model/types";
 import { CATEGORY_LABELS, type Category } from "@/src/entities/bug/model/types";
+import { listWorkflowColumns } from "@/src/entities/workflow-column/api/workflow-column-api";
+import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 
 type BugDetailProps = {
   bug: Bug;
@@ -15,6 +17,11 @@ type BugDetailProps = {
 
 export function BugDetail({ bug: initialBug }: BugDetailProps) {
   const [bug, setBug] = useState(initialBug);
+  const [columns, setColumns] = useState<WorkflowColumn[]>([]);
+
+  useEffect(() => {
+    listWorkflowColumns().then(setColumns).catch(() => {});
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -37,7 +44,7 @@ export function BugDetail({ bug: initialBug }: BugDetailProps) {
           <CardTitle className="text-base">ステータス変更</CardTitle>
         </CardHeader>
         <CardContent>
-          <StatusSelect bug={bug} onUpdated={setBug} />
+          <StatusSelect bug={bug} onUpdated={setBug} allColumns={columns} />
         </CardContent>
       </Card>
 
