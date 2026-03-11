@@ -7,7 +7,6 @@ import type { AnalyticsResponse } from "@/src/entities/analytics/model/types";
 import { BugTrendChart } from "./BugTrendChart";
 import { SeverityChart } from "./SeverityChart";
 import { AssigneeTable } from "./AssigneeTable";
-import { MilestoneProgress } from "./MilestoneProgress";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -170,17 +169,6 @@ export function AnalyticsPage() {
               </CardContent>
             </Card>
           </div>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[13px]">
-                {"\u30de\u30a4\u30eb\u30b9\u30c8\u30fc\u30f3\u9032\u6357"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <MilestoneProgress milestones={data.milestones} />
-            </CardContent>
-          </Card>
         </>
       ) : null}
     </div>

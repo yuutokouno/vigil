@@ -127,6 +127,44 @@ integrations   ← project_id FK 追加
 
 ---
 
+### Phase 7 — QA プラットフォーム強化 🟠 `P2`
+
+> テストを「計画→実行→結果確認」まで Vigil 内で完結させる。Bug Bash でチーム全体のバグ発見を活性化する。
+
+| Issue | 内容 | ラベル |
+|-------|------|--------|
+| #T | テスト実行バッチ API（シナリオ一括実行・非同期ジョブ） | `area: test-management` `backend` `P2` |
+| #U | テスト結果タイムライン UI（実行履歴・成功率グラフ） | `area: test-management` `area: analytics` `frontend` `P2` |
+| #V | コントリビューターランキング（バグ発見数・修正数・テスト消化数） | `area: analytics` `backend` `frontend` `P2` |
+| #W | Bug Bash イベント管理（期間設定・スコアボード・スラック通知） | `area: bug-bash` `backend` `frontend` `P2` |
+
+**#T の詳細:**
+- `test_runs` テーブル: `(id, triggered_by, scenario_ids[], status, started_at, finished_at)`
+- `test_run_results` テーブル: `(id, run_id, scenario_id, status, duration_ms, error_msg)`
+- `POST /api/test-runs` — バッチ起動（APScheduler で非同期実行）
+- `GET /api/test-runs/{id}` — 進捗ポーリング
+- GitHub Actions webhook からも起動可能（`POST /api/webhooks/github` の PR merge イベントに連動）
+
+**#U の詳細:**
+- `GET /api/test-runs?limit=20` — 最近の実行一覧
+- Analytics ページに「テスト実行履歴」タブを追加
+- 折れ線グラフ: 実行日×成功率（recharts）
+
+**#V の詳細:**
+- `GET /api/analytics/contributors?period=30d`
+- `bug_created_count`, `bug_closed_count`, `tests_checked_count` を集計
+- Analytics ページに「コントリビューターランキング」テーブルを追加
+- 週次・月次切り替え
+
+**#W の詳細:**
+- `bug_bash_events` テーブル: `(id, title, start_at, end_at, scoring_config_json)`
+- `bug_bash_entries` テーブル: `(id, event_id, user_id, bug_id, points)`
+- スコア計算: critical=10, high=5, medium=2, low=1 pts
+- イベント終了時に Slack へスコアボード通知（`@channel`）
+- `/settings/events` ページ（イベント作成・管理）
+
+---
+
 ### Phase 6 — デプロイ 🟢 `P1`
 
 > Vercel + Railway で公開。会社導入時に AWS へ移行。
@@ -151,6 +189,8 @@ Phase 3: #H → #I → #J → #K
 Phase 4: #L → #M → #N
               ↓
 Phase 5: #C → #D → #O → #P
+              ↓
+Phase 7: #T → #U → #V → #W   ← Phase 3 完了後に並行で進める
 
 Phase 6: #Q → #R → #S  ← Phase 1 完了後すぐ並行で進める
 ```
@@ -162,7 +202,7 @@ Phase 6: #Q → #R → #S  ← Phase 1 完了後すぐ並行で進める
 | カラム | Issue |
 |--------|-------|
 | **Todo** | #A, #B, #E, #F, #Q, #R, #S |
-| **Backlog** | #C, #D, #G, #H, #I, #J, #K, #L, #M, #N, #O, #P |
+| **Backlog** | #C, #D, #G, #H, #I, #J, #K, #L, #M, #N, #O, #P, #T, #U, #V, #W |
 
 ---
 
