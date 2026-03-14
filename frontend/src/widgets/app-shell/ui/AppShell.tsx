@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuthGuard } from "@/src/features/auth/model/use-auth-guard";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 
@@ -10,6 +11,9 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Redirect to /login if not authenticated, /select-project if no project_id
+  useAuthGuard();
 
   return (
     <div className="flex h-screen overflow-hidden">
