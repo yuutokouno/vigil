@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import Date, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.di.auth import ProjectAuthContext, verify_project_membership
 from app.infrastructure.db.database import get_session
 from app.domain.models import Bug, Milestone
 
@@ -125,6 +126,7 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
 async def get_analytics(
     period: Literal["7d", "30d", "90d"] = Query("30d"),
     compare_to: Literal["prev"] | None = Query(None),
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     session: AsyncSession = Depends(get_session),
 ) -> AnalyticsResponse:
     days = _period_days(period)

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 
+from app.di.auth import ProjectAuthContext, verify_project_membership
 from app.di.workflow_column import get_workflow_column_usecase
 from app.domain.schemas import (
     WorkflowColumnCreate,
@@ -19,6 +20,7 @@ router = APIRouter(prefix="/api/workflow-columns", tags=["workflow-columns"])
 
 @router.get("", response_model=list[WorkflowColumnResponse])
 async def list_workflow_columns(
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> list[WorkflowColumnResponse]:
     return await usecase.list_all()
@@ -27,6 +29,7 @@ async def list_workflow_columns(
 @router.post("", response_model=WorkflowColumnResponse, status_code=201)
 async def create_workflow_column(
     data: WorkflowColumnCreate,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> WorkflowColumnResponse:
     try:
@@ -41,6 +44,7 @@ async def create_workflow_column(
 async def update_workflow_column(
     column_id: str,
     data: WorkflowColumnUpdate,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> WorkflowColumnResponse:
     try:
@@ -54,6 +58,7 @@ async def update_workflow_column(
 @router.delete("/{column_id}", status_code=204)
 async def delete_workflow_column(
     column_id: str,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> None:
     try:

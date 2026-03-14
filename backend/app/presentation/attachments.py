@@ -3,9 +3,9 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
-from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.di.auth import ProjectAuthContext, verify_project_membership
 from app.domain.models import Bug
 from app.domain.schemas import AttachmentResponse
 from app.infrastructure.db.database import get_session
@@ -58,6 +58,7 @@ def _sanitize_filename(filename: str) -> str:
 async def upload_attachment(
     bug_id: str,
     file: UploadFile,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     session: AsyncSession = Depends(get_session),
 ) -> AttachmentResponse:
     # Validate bug_id format
@@ -115,6 +116,7 @@ async def upload_attachment(
 @router.get("/{bug_id}/attachments", response_model=list[AttachmentResponse])
 async def list_attachments(
     bug_id: str,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     session: AsyncSession = Depends(get_session),
 ) -> list[AttachmentResponse]:
     try:
