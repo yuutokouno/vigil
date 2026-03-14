@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 1440  # 24 hours
     frontend_url: str = "http://localhost:3000"
     encryption_key: str = ""  # Set via ENCRYPTION_KEY env var; generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    upload_dir: str = "uploads"  # Base directory for file uploads (relative to backend root)
 
     @property
     def cors_origin_list(self) -> list[str]:
