@@ -219,12 +219,6 @@ cp .env.example .env
 | `ENCRYPTION_KEY` | 統合 credentials の暗号化キー (Fernet) | (要手動設定) |
 | `NEXT_PUBLIC_API_URL` | フロントエンドからの API ベース URL | `http://localhost:8000` |
 
-`ENCRYPTION_KEY` は以下のコマンドで生成してください:
-
-```bash
-python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-```
-
 ### 起動
 
 ```bash
@@ -255,12 +249,12 @@ vigil/
 │   ├── app/
 │   │   ├── connectors/           # Slack / HubSpot / Notion コネクタ
 │   │   ├── di/                   # DI（依存性注入）層
-│   │   ├── domain/               # モデル・スキーマ
+│   │   ├── domain/               # モデル・スキーマ・リポジトリ抽象定義
+│   │   │   └── repository/       # リポジトリ抽象インターフェース
 │   │   ├── infrastructure/       # DB・リポジトリ・外部連携の実装
 │   │   │   ├── db/               # DB セッション管理
 │   │   │   └── repository/       # リポジトリ実装
 │   │   ├── presentation/         # FastAPI ルーター
-│   │   ├── repository/           # リポジトリ抽象インターフェース
 │   │   └── usecase/              # ビジネスロジック
 │   └── alembic/versions/         # マイグレーション
 └── frontend/
