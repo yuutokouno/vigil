@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_session
+from app.di.bug import get_bug_usecase
 from app.domain.schemas import (
     BugCreate,
     BugListParams,
@@ -12,21 +11,15 @@ from app.domain.schemas import (
     Category,
     Severity,
 )
-from app.repository.postgres import PostgresBugRepository
 from app.usecase.bug_usecase import BugNotFoundError, BugUsecase
 
 router = APIRouter(prefix="/api/bugs", tags=["bugs"])
 
 
-def _get_usecase(session: AsyncSession = Depends(get_session)) -> BugUsecase:
-    repository = PostgresBugRepository(session)
-    return BugUsecase(repository)
-
-
 @router.post("", response_model=BugResponse, status_code=201)
 async def create_bug(
     bug: BugCreate,
-    usecase: BugUsecase = Depends(_get_usecase),
+    usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     return await usecase.create_bug(bug)
 
@@ -41,7 +34,7 @@ async def list_bugs(
     order: str = "desc",
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
-    usecase: BugUsecase = Depends(_get_usecase),
+    usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     params = BugListParams(
         status=status,
@@ -58,7 +51,7 @@ async def list_bugs(
 
 @router.get("/stats", response_model=BugStatsResponse)
 async def get_stats(
-    usecase: BugUsecase = Depends(_get_usecase),
+    usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     return await usecase.get_stats()
 
@@ -66,7 +59,7 @@ async def get_stats(
 @router.get("/{bug_id}", response_model=BugResponse)
 async def get_bug(
     bug_id: str,
-    usecase: BugUsecase = Depends(_get_usecase),
+    usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     try:
         return await usecase.get_bug(bug_id)
@@ -78,7 +71,7 @@ async def get_bug(
 async def update_bug(
     bug_id: str,
     bug: BugUpdate,
-    usecase: BugUsecase = Depends(_get_usecase),
+    usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     try:
         return await usecase.update_bug(bug_id, bug)
@@ -89,7 +82,7 @@ async def update_bug(
 @router.delete("/{bug_id}", status_code=204)
 async def delete_bug(
     bug_id: str,
-    usecase: BugUsecase = Depends(_get_usecase),
+    usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     try:
         await usecase.delete_bug(bug_id)

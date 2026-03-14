@@ -8,7 +8,7 @@ from app.domain.schemas import (
     BugStatsResponse,
     BugUpdate,
 )
-from app.repository.base import BugRepository
+from app.infrastructure.repository.base import BugRepository
 
 
 class BugNotFoundError(Exception):

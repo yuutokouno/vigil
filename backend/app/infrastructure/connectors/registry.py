@@ -1,5 +1,5 @@
 # backend/app/connectors/registry.py
-from app.connectors.base import ConnectorABC
+from app.infrastructure.connectors.base import ConnectorABC
 
 _registry: dict[str, ConnectorABC] = {}
 

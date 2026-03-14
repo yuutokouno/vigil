@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import Date, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_session
+from app.infrastructure.db.database import get_session
 from app.domain.models import Bug, Milestone
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])

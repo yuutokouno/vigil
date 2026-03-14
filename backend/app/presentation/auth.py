@@ -7,9 +7,9 @@ from jose import jwt, JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.database import get_session
+from app.infrastructure.db.database import get_session
 from app.domain.schemas import UserResponse
-from app.repository.user_repo import UserRepository
+from app.infrastructure.repository.user_repo import UserRepository
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 

@@ -1,5 +1,5 @@
 from app.domain.schemas import MilestoneCreate, MilestoneResponse, MilestoneUpdate
-from app.repository.milestone_repo import MilestoneRepository
+from app.infrastructure.repository.milestone_repo import MilestoneRepository
 
 
 class MilestoneNotFoundError(Exception):

@@ -1,31 +1,21 @@
-# backend/app/presentation/webhooks.py
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.connectors.encryption import CredentialDecryptionError, decrypt_credentials
-from app.connectors.registry import get_connector
-from app.connectors.slack.handler import SlackConnector
-from app.database import get_session
-from app.repository.integration_repo import IntegrationRepository
-from app.repository.postgres import PostgresBugRepository
+from app.di.bug import get_bug_usecase
+from app.di.integration import get_integration_repo
+from app.infrastructure.connectors.encryption import CredentialDecryptionError, decrypt_credentials
+from app.infrastructure.connectors.registry import get_connector
+from app.infrastructure.connectors.slack.handler import SlackConnector
+from app.infrastructure.repository.integration_repo import IntegrationRepository
 from app.usecase.bug_usecase import BugUsecase
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
 
-def _get_bug_usecase(session: AsyncSession = Depends(get_session)) -> BugUsecase:
-    return BugUsecase(PostgresBugRepository(session))
-
-
-def _get_integration_repo(session: AsyncSession = Depends(get_session)) -> IntegrationRepository:
-    return IntegrationRepository(session)
-
-
 @router.post("/slack")
 async def slack_webhook(
     request: Request,
-    bug_usecase: BugUsecase = Depends(_get_bug_usecase),
-    integration_repo: IntegrationRepository = Depends(_get_integration_repo),
+    bug_usecase: BugUsecase = Depends(get_bug_usecase),
+    integration_repo: IntegrationRepository = Depends(get_integration_repo),
 ) -> dict:
     body = await request.body()
     json_body = await request.json()
@@ -122,8 +112,8 @@ async def slack_webhook(
 @router.post("/hubspot")
 async def hubspot_webhook(
     request: Request,
-    bug_usecase: BugUsecase = Depends(_get_bug_usecase),
-    integration_repo: IntegrationRepository = Depends(_get_integration_repo),
+    bug_usecase: BugUsecase = Depends(get_bug_usecase),
+    integration_repo: IntegrationRepository = Depends(get_integration_repo),
 ) -> dict:
     json_body = await request.json()
 

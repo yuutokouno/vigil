@@ -4,7 +4,7 @@ import logging
 import httpx
 from fastapi import Request
 
-from app.connectors.base import ConnectorABC
+from app.infrastructure.connectors.base import ConnectorABC
 from app.domain.schemas import BugCreate, Priority, Severity, Source
 
 logger = logging.getLogger(__name__)

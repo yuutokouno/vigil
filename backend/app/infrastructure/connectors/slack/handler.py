@@ -1,9 +1,9 @@
 # backend/app/connectors/slack/handler.py
 from fastapi import Request
 
-from app.connectors.base import ConnectorABC
-from app.connectors.slack.client import SlackClient
-from app.connectors.slack.verify import verify_slack_signature
+from app.infrastructure.connectors.base import ConnectorABC
+from app.infrastructure.connectors.slack.client import SlackClient
+from app.infrastructure.connectors.slack.verify import verify_slack_signature
 from app.domain.schemas import BugCreate, Priority, Severity, Source
 
 

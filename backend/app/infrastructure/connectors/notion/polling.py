@@ -2,11 +2,11 @@
 import logging
 from datetime import timezone as _tz
 
-from app.connectors.encryption import decrypt_credentials
-from app.connectors.notion.handler import NotionConnector
-from app.database import async_session
-from app.repository.integration_repo import IntegrationRepository
-from app.repository.postgres import PostgresBugRepository
+from app.infrastructure.connectors.encryption import decrypt_credentials
+from app.infrastructure.connectors.notion.handler import NotionConnector
+from app.infrastructure.db.database import async_session
+from app.infrastructure.repository.integration_repo import IntegrationRepository
+from app.infrastructure.repository.postgres import PostgresBugRepository
 from app.usecase.bug_usecase import BugUsecase
 
 logger = logging.getLogger(__name__)
