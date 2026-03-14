@@ -284,3 +284,26 @@ docker-compose exec backend uv run alembic upgrade head
 1. `frontend/src/pages/xxx/ui/XxxPage.tsx` — ページコンポーネント作成
 2. `frontend/app/xxx/page.tsx` — Next.js ルーティング登録
 3. `frontend/src/widgets/app-shell/ui/Sidebar.tsx` の `NAV_ITEMS` にリンク追加（必要なら）
+
+---
+
+## アーキテクチャ上の決定事項・見解
+
+### widgets レイヤーの使い方
+
+**原則: 「2つ以上のページで使い回すものだけ widgets に置く。1ページ専用なら pages に置く。」**
+
+FSD 公式での `widgets` の定義は「複数の features/entities を組み合わせた再利用可能な独立した UI ブロック」。
+`shared/ui` より大きく、`pages` より汎用的なもの。
+
+| コンポーネント | 場所 | 理由 |
+|-------------|------|------|
+| `AppShell`, `Sidebar`, `Header` | `widgets/app-shell/` ✅ | 全ページで使い回している |
+| `BugList` | → `pages/dashboard/` に移動すべき | dashboard だけで使っている |
+| `BugDetail` | → `pages/bug-detail/` に移動すべき | bug-detail ページだけ |
+| `KanbanBoard` | → `pages/board/` に移動すべき | board ページだけ |
+| `MilestoneList` | → `pages/milestones/` に移動すべき | milestones ページだけ |
+| `StatsCards` | → `pages/dashboard/` に移動すべき | dashboard だけ |
+| `IntegrationHub` | → `pages/integrations/` に移動すべき | integrations ページだけ |
+
+現状はまだ未整理のものが `widgets/` に残っているが、将来リファクタリングする際はこの原則で整理する。
