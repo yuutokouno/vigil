@@ -330,15 +330,27 @@ backend/app/
 
 **理想形**
 
+`infrastructure/` が親レイヤーで、DB・リポジトリ・外部サービスをすべてその配下に置く。
+
 ```
 backend/app/
-├── domain/              ← モデル・スキーマ（外部依存ゼロ）
-├── usecase/             ← ビジネスロジック
-├── infrastructure/      ← インフラ層として統合
-│   ├── db/              ← database.py + postgres.py（今の repository/）
-│   └── connectors/      ← Slack / HubSpot / Notion / GitHub
-├── presentation/        ← FastAPI ルーター
-├── dependencies.py      ← DI 層（新設すべき）
+├── domain/                    ← モデル・スキーマ（外部依存ゼロ）
+├── usecase/                   ← ビジネスロジック
+├── infrastructure/            ← 外部との境界をすべて束ねる親レイヤー
+│   ├── db/
+│   │   ├── database.py        ← DB セッション管理
+│   │   └── postgres.py        ← SQLAlchemy 実装（今の repository/postgres.py）
+│   ├── repository/            ← リポジトリ抽象 + 実装
+│   │   ├── base.py
+│   │   ├── bug_repo.py
+│   │   └── milestone_repo.py
+│   └── connectors/            ← 外部サービス連携
+│       ├── slack/
+│       ├── hubspot/
+│       ├── notion/
+│       └── github/            ← Phase 2 で追加予定
+├── presentation/              ← FastAPI ルーター
+├── dependencies.py            ← DI 層（新設すべき）
 └── main.py
 ```
 
