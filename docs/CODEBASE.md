@@ -349,8 +349,13 @@ backend/app/
 │       ├── hubspot/
 │       ├── notion/
 │       └── github/            ← Phase 2 で追加予定
+├── di/                        ← DI 層（ドメインごとにファイルを分割）
+│   ├── __init__.py
+│   ├── bug.py                 ← Bug ドメインの DI
+│   ├── milestone.py           ← Milestone ドメインの DI
+│   ├── integration.py         ← Integration ドメインの DI
+│   └── workflow_column.py     ← WorkflowColumn ドメインの DI
 ├── presentation/              ← FastAPI ルーター
-├── dependencies.py            ← DI 層（新設すべき）
 └── main.py
 ```
 
@@ -369,23 +374,31 @@ def _get_usecase(session: AsyncSession = Depends(get_session)) -> BugUsecase:
 # presentation/milestones.py にも同様のコードが存在
 ```
 
-**理想形（dependencies.py に集約）**
+**理想形（di/ ディレクトリにドメインごとのファイルで分割）**
+
+ドメインが増えるにつれて1ファイルに全 DI を書くと肥大化する。ドメイン単位でファイルを分割することでスケールする。
 
 ```python
-# app/dependencies.py
-from app.infrastructure.db.postgres import PostgresBugRepository
+# app/di/bug.py
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.infrastructure.db.database import get_session
+from app.infrastructure.repository.bug_repo import PostgresBugRepository
 from app.usecase.bug_usecase import BugUsecase
 
 def get_bug_usecase(session: AsyncSession = Depends(get_session)) -> BugUsecase:
     return BugUsecase(PostgresBugRepository(session))
+```
 
+```python
+# app/di/milestone.py
 def get_milestone_usecase(session: AsyncSession = Depends(get_session)) -> MilestoneUsecase:
     return MilestoneUsecase(MilestoneRepository(session))
 ```
 
 ```python
 # presentation/bugs.py はシンプルになる
-from app.dependencies import get_bug_usecase
+from app.di.bug import get_bug_usecase
 
 @router.get("/{bug_id}")
 async def get_bug(bug_id: str, usecase: BugUsecase = Depends(get_bug_usecase)):
@@ -393,8 +406,9 @@ async def get_bug(bug_id: str, usecase: BugUsecase = Depends(get_bug_usecase)):
 ```
 
 **メリット：**
-- usecase とリポジトリの組み合わせが一箇所で把握できる
-- テスト時にモックへの差し替えが容易（`app.override_dependency()`）
+- ドメインごとに DI の責務が分離され、ファイルが肥大化しない
+- 新しいドメイン（test_management, bug_bash など）を追加するとき `di/` に1ファイル追加するだけ
+- テスト時にモックへの差し替えが容易（`app.dependency_overrides[get_bug_usecase] = mock`）
 - 各ルーターが DI の実装詳細を知らなくて済む
 
-現状はまだ未整理だが、新しいエンドポイントを追加するときは `dependencies.py` に DI を書く方針で進める。
+現状はまだ未整理だが、新しいエンドポイントを追加するときは `di/{domain}.py` に DI を書く方針で進める。
