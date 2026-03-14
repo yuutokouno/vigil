@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.infrastructure.db.database import get_session
 from app.domain.schemas import UserResponse
+from app.infrastructure.repository.project_repo import ProjectRepository
 from app.infrastructure.repository.user_repo import UserRepository
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -65,15 +66,24 @@ async def github_callback(
         )
         github_user = user_response.json()
 
-    repo = UserRepository(session)
-    user = await repo.upsert_by_github_id(
+    user_repo = UserRepository(session)
+    user = await user_repo.upsert_by_github_id(
         github_id=str(github_user["id"]),
         name=github_user.get("name") or github_user["login"],
         email=github_user.get("email"),
         avatar_url=github_user.get("avatar_url"),
     )
 
-    token = _create_token(user.id)
+    # Ensure default org/project exists and user is a member
+    project_repo = ProjectRepository(session)
+    org, project = await project_repo.get_or_create_default(user)
+
+    # Issue JWT with org_id and project_id so dashboard loads immediately
+    token = _create_token(
+        user_id=str(user.id),
+        org_id=str(org.id),
+        project_id=str(project.id),
+    )
     return RedirectResponse(f"{settings.frontend_url}?token={token}")
 
 
