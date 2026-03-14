@@ -35,6 +35,14 @@ class Source(str, Enum):
     HUBSPOT = "hubspot"
     NOTION = "notion"
     TEST = "test"
+    CUSTOMER = "customer"
+
+
+class DiscoveryStage(str, Enum):
+    INTERNAL = "internal"
+    QA = "qa"
+    AEGIS = "aegis"
+    CUSTOMER = "customer"
 
 
 class BugCreate(BaseModel):
@@ -54,6 +62,8 @@ class BugCreate(BaseModel):
     milestone_id: str | None = None
     slack_message_url: str | None = None
     external_ref: str | None = None
+    version: str | None = None
+    discovery_stage: DiscoveryStage | None = None
 
 
 class BugUpdate(BaseModel):
@@ -67,8 +77,21 @@ class BugUpdate(BaseModel):
     sprint: str | None = None
     milestone_id: str | None = None
     closed_at: datetime | None = None
+    version: str | None = None
+    discovery_stage: DiscoveryStage | None = None
 
     model_config = ConfigDict(extra="allow")
+
+
+class AttachmentResponse(BaseModel):
+    id: str
+    bug_id: str
+    file_name: str
+    file_url: str
+    file_size: int | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BugResponse(BaseModel):
@@ -91,6 +114,10 @@ class BugResponse(BaseModel):
     slack_message_url: str | None
     github_issue_url: str | None
     external_ref: str | None
+    version: str | None
+    discovery_stage: DiscoveryStage | None
+    bug_number: int
+    attachments: list[AttachmentResponse] = []
     created_at: datetime
     updated_at: datetime
     closed_at: datetime | None
@@ -121,6 +148,23 @@ class BugStatsResponse(BaseModel):
     by_status: dict[str, int]
     by_severity: dict[str, int]
     by_category: dict[str, int]
+
+
+class PublicBugCreate(BaseModel):
+    """Schema for unauthenticated external bug reports (Issue #11)."""
+
+    title: str
+    description: str | None = None
+    steps_to_reproduce: str | None = None
+    environment: str | None = None
+    severity: Severity = Severity.MEDIUM
+
+
+class PublicBugResponse(BaseModel):
+    """Response for public bug creation, exposing only the bug number and id."""
+
+    id: str
+    bug_number: str  # formatted as VIGIL-XXXX
 
 
 class MilestoneStatus(str, Enum):

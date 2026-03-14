@@ -2,9 +2,11 @@ import uuid
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from app.domain.models import Bug
+from app.domain.models import Attachment, Bug
 from app.domain.schemas import (
+    AttachmentResponse,
     BugCreate,
     BugListParams,
     BugListResponse,
@@ -26,16 +28,21 @@ class PostgresBugRepository(BugRepository):
         self._session.add(db_bug)
         await self._session.commit()
         await self._session.refresh(db_bug)
-        return self._to_response(db_bug)
+        return self._to_response(db_bug, [])
 
     async def get_by_id(self, bug_id: str) -> BugResponse | None:
-        bug = await self._session.get(Bug, uuid.UUID(bug_id))
+        result = await self._session.execute(
+            select(Bug)
+            .options(selectinload(Bug.attachments))
+            .where(Bug.id == uuid.UUID(bug_id))
+        )
+        bug = result.scalar_one_or_none()
         if bug is None:
             return None
-        return self._to_response(bug)
+        return self._to_response(bug, bug.attachments)
 
     async def list_bugs(self, params: BugListParams) -> BugListResponse:
-        query = select(Bug)
+        query = select(Bug).options(selectinload(Bug.attachments))
         count_query = select(func.count()).select_from(Bug)
 
         query, count_query = self._apply_filters(query, count_query, params)
@@ -56,14 +63,19 @@ class PostgresBugRepository(BugRepository):
         total = total_result.scalar_one()
 
         return BugListResponse(
-            items=[self._to_response(bug) for bug in bugs],
+            items=[self._to_response(bug, bug.attachments) for bug in bugs],
             total=total,
             page=params.page,
             limit=params.limit,
         )
 
     async def update(self, bug_id: str, bug: BugUpdate) -> BugResponse | None:
-        db_bug = await self._session.get(Bug, uuid.UUID(bug_id))
+        result = await self._session.execute(
+            select(Bug)
+            .options(selectinload(Bug.attachments))
+            .where(Bug.id == uuid.UUID(bug_id))
+        )
+        db_bug = result.scalar_one_or_none()
         if db_bug is None:
             return None
 
@@ -73,7 +85,7 @@ class PostgresBugRepository(BugRepository):
 
         await self._session.commit()
         await self._session.refresh(db_bug)
-        return self._to_response(db_bug)
+        return self._to_response(db_bug, db_bug.attachments)
 
     async def delete(self, bug_id: str) -> bool:
         db_bug = await self._session.get(Bug, uuid.UUID(bug_id))
@@ -128,7 +140,7 @@ class PostgresBugRepository(BugRepository):
         return getattr(Bug, sort)
 
     @staticmethod
-    def _to_response(bug: Bug) -> BugResponse:
+    def _to_response(bug: Bug, attachments: list[Attachment]) -> BugResponse:
         return BugResponse(
             id=str(bug.id),
             title=bug.title,
@@ -149,6 +161,20 @@ class PostgresBugRepository(BugRepository):
             slack_message_url=bug.slack_message_url,
             github_issue_url=bug.github_issue_url,
             external_ref=bug.external_ref,
+            version=bug.version,
+            discovery_stage=bug.discovery_stage,
+            bug_number=bug.bug_number,
+            attachments=[
+                AttachmentResponse(
+                    id=str(a.id),
+                    bug_id=str(a.bug_id),
+                    file_name=a.file_name,
+                    file_url=a.file_url,
+                    file_size=a.file_size,
+                    created_at=a.created_at,
+                )
+                for a in attachments
+            ],
             created_at=bug.created_at,
             updated_at=bug.updated_at,
             closed_at=bug.closed_at,

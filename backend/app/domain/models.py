@@ -2,9 +2,9 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Identity, Index, Integer, LargeBinary, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
@@ -70,6 +70,15 @@ class Bug(Base):
     priority: Mapped[str] = mapped_column(String(10), nullable=False, default="P2")
     category: Mapped[str | None] = mapped_column(String(30))
 
+    # Version and discovery stage (Issue #8)
+    version: Mapped[str | None] = mapped_column(String(50))
+    discovery_stage: Mapped[str | None] = mapped_column(String(50))
+
+    # Auto-incrementing bug number for VIGIL-XXXX display (Issue #8)
+    bug_number: Mapped[int] = mapped_column(
+        Integer(), Identity(always=False), nullable=False
+    )
+
     # Assignment
     reported_by: Mapped[str | None] = mapped_column(String(100))
     assigned_to: Mapped[str | None] = mapped_column(String(100))
@@ -98,11 +107,36 @@ class Bug(Base):
     )
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
+    # Relationships
+    attachments: Mapped[list["Attachment"]] = relationship(
+        "Attachment", back_populates="bug", cascade="all, delete-orphan", lazy="select"
+    )
+
     __table_args__ = (
         Index("idx_bugs_status", "status"),
         Index("idx_bugs_severity", "severity"),
         Index("idx_bugs_created_at", "created_at"),
     )
+
+
+class Attachment(Base):
+    __tablename__ = "attachments"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    bug_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("bugs.id", ondelete="CASCADE"), nullable=False
+    )
+    file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    file_url: Mapped[str] = mapped_column(Text, nullable=False)
+    file_size: Mapped[int | None] = mapped_column(Integer())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    # Relationships
+    bug: Mapped["Bug"] = relationship("Bug", back_populates="attachments")
 
 
 class WorkflowColumn(Base):
