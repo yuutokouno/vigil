@@ -12,7 +12,7 @@ from app.domain.schemas import (
     BugStatsResponse,
     BugUpdate,
 )
-from app.repository.base import BugRepository
+from app.infrastructure.repository.base import BugRepository
 
 SORTABLE_COLUMNS = {"created_at", "updated_at", "severity", "priority", "status"}
 

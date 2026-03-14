@@ -3,11 +3,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.connectors.hubspot.handler import HubSpotConnector
-from app.connectors.notion.handler import NotionConnector
-from app.connectors.notion.polling import poll_notion_integrations
-from app.connectors.registry import register_connector
-from app.connectors.slack.handler import SlackConnector
+from app.infrastructure.connectors.hubspot.handler import HubSpotConnector
+from app.infrastructure.connectors.notion.handler import NotionConnector
+from app.infrastructure.connectors.notion.polling import poll_notion_integrations
+from app.infrastructure.connectors.registry import register_connector
+from app.infrastructure.connectors.slack.handler import SlackConnector
 from app.presentation.analytics import router as analytics_router
 from app.presentation.auth import router as auth_router
 from app.presentation.bugs import router as bugs_router

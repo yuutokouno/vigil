@@ -5,7 +5,7 @@ from app.domain.schemas import (
     WorkflowColumnResponse,
     WorkflowColumnUpdate,
 )
-from app.repository.workflow_column_repo import WorkflowColumnRepository
+from app.infrastructure.repository.workflow_column_repo import WorkflowColumnRepository
 
 _SLUG_RE = re.compile(r'^[a-z][a-z0-9_]{0,48}$')
 

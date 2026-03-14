@@ -4,7 +4,7 @@ from typing import Any
 import httpx
 from fastapi import Request
 
-from app.connectors.base import ConnectorABC
+from app.infrastructure.connectors.base import ConnectorABC
 from app.domain.schemas import BugCreate, Priority, Severity, Source
 
 HUBSPOT_API = "https://api.hubapi.com"

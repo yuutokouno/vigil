@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_session
+from app.di.workflow_column import get_workflow_column_usecase
 from app.domain.schemas import (
     WorkflowColumnCreate,
     WorkflowColumnResponse,
     WorkflowColumnUpdate,
 )
-from app.repository.workflow_column_repo import WorkflowColumnRepository
 from app.usecase.workflow_column_usecase import (
     WorkflowColumnFixedError,
     WorkflowColumnHasBugsError,
@@ -19,13 +17,9 @@ from app.usecase.workflow_column_usecase import (
 router = APIRouter(prefix="/api/workflow-columns", tags=["workflow-columns"])
 
 
-def _get_usecase(session: AsyncSession = Depends(get_session)) -> WorkflowColumnUsecase:
-    return WorkflowColumnUsecase(WorkflowColumnRepository(session))
-
-
 @router.get("", response_model=list[WorkflowColumnResponse])
 async def list_workflow_columns(
-    usecase: WorkflowColumnUsecase = Depends(_get_usecase),
+    usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> list[WorkflowColumnResponse]:
     return await usecase.list_all()
 
@@ -33,7 +27,7 @@ async def list_workflow_columns(
 @router.post("", response_model=WorkflowColumnResponse, status_code=201)
 async def create_workflow_column(
     data: WorkflowColumnCreate,
-    usecase: WorkflowColumnUsecase = Depends(_get_usecase),
+    usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> WorkflowColumnResponse:
     try:
         return await usecase.create(data)
@@ -47,7 +41,7 @@ async def create_workflow_column(
 async def update_workflow_column(
     column_id: str,
     data: WorkflowColumnUpdate,
-    usecase: WorkflowColumnUsecase = Depends(_get_usecase),
+    usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> WorkflowColumnResponse:
     try:
         return await usecase.update(column_id, data)
@@ -60,7 +54,7 @@ async def update_workflow_column(
 @router.delete("/{column_id}", status_code=204)
 async def delete_workflow_column(
     column_id: str,
-    usecase: WorkflowColumnUsecase = Depends(_get_usecase),
+    usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> None:
     try:
         await usecase.delete(column_id)

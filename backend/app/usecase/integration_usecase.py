@@ -1,15 +1,15 @@
 # backend/app/usecase/integration_usecase.py
 from typing import Any
 
-from app.connectors.encryption import decrypt_credentials
-from app.connectors.registry import get_connector
+from app.infrastructure.connectors.encryption import decrypt_credentials
+from app.infrastructure.connectors.registry import get_connector
 from app.domain.schemas import (
     IntegrationCreate,
     IntegrationEventResponse,
     IntegrationResponse,
     IntegrationUpdate,
 )
-from app.repository.integration_repo import IntegrationRepository
+from app.infrastructure.repository.integration_repo import IntegrationRepository
 
 
 class IntegrationNotFoundError(Exception):

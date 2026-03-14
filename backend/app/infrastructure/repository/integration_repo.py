@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.connectors.encryption import encrypt_credentials, decrypt_credentials
+from app.infrastructure.connectors.encryption import encrypt_credentials, decrypt_credentials
 from app.domain.models import Integration, IntegrationEvent
 from app.domain.schemas import (
     IntegrationCreate,
