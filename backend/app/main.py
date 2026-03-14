@@ -1,6 +1,7 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.infrastructure.connectors.hubspot.handler import HubSpotConnector
@@ -22,11 +23,17 @@ app = FastAPI(title="Vigil", description="Bug tracking dashboard for archaive")
 scheduler = AsyncIOScheduler()
 
 app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.session_secret,
+    https_only=False,  # Set True in production (HTTPS only)
+    same_site="lax",
+)
+app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
 
