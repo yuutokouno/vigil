@@ -307,3 +307,82 @@ FSD 公式での `widgets` の定義は「複数の features/entities を組み�
 | `IntegrationHub` | → `pages/integrations/` に移動すべき | integrations ページだけ |
 
 現状はまだ未整理のものが `widgets/` に残っているが、将来リファクタリングする際はこの原則で整理する。
+
+---
+
+### バックエンドのレイヤー整理（現状の課題と理想形）
+
+**現状の問題点**
+
+今の構造では `connectors/`（外部サービス連携）と `database.py`（DBセッション）がどのレイヤーにも属さず宙に浮いている。オニオンアーキテクチャ的にはどちらも「インフラストラクチャ層」の責務。
+
+```
+# 現状（課題あり）
+backend/app/
+├── domain/         ← OK
+├── repository/     ← DB のみ（connectors と分離している）
+├── usecase/        ← OK
+├── presentation/   ← OK
+├── connectors/     ← ← どこにも属していない
+├── database.py     ← ← どこにも属していない
+└── main.py
+```
+
+**理想形**
+
+```
+backend/app/
+├── domain/              ← モデル・スキーマ（外部依存ゼロ）
+├── usecase/             ← ビジネスロジック
+├── infrastructure/      ← インフラ層として統合
+│   ├── db/              ← database.py + postgres.py（今の repository/）
+│   └── connectors/      ← Slack / HubSpot / Notion / GitHub
+├── presentation/        ← FastAPI ルーター
+├── dependencies.py      ← DI 層（新設すべき）
+└── main.py
+```
+
+---
+
+### DI 層（dependencies.py）を作るべき理由
+
+**現状（各ルーターに DI が散在している）**
+
+```python
+# presentation/bugs.py
+def _get_usecase(session: AsyncSession = Depends(get_session)) -> BugUsecase:
+    repository = PostgresBugRepository(session)
+    return BugUsecase(repository)
+
+# presentation/milestones.py にも同様のコードが存在
+```
+
+**理想形（dependencies.py に集約）**
+
+```python
+# app/dependencies.py
+from app.infrastructure.db.postgres import PostgresBugRepository
+from app.usecase.bug_usecase import BugUsecase
+
+def get_bug_usecase(session: AsyncSession = Depends(get_session)) -> BugUsecase:
+    return BugUsecase(PostgresBugRepository(session))
+
+def get_milestone_usecase(session: AsyncSession = Depends(get_session)) -> MilestoneUsecase:
+    return MilestoneUsecase(MilestoneRepository(session))
+```
+
+```python
+# presentation/bugs.py はシンプルになる
+from app.dependencies import get_bug_usecase
+
+@router.get("/{bug_id}")
+async def get_bug(bug_id: str, usecase: BugUsecase = Depends(get_bug_usecase)):
+    ...
+```
+
+**メリット：**
+- usecase とリポジトリの組み合わせが一箇所で把握できる
+- テスト時にモックへの差し替えが容易（`app.override_dependency()`）
+- 各ルーターが DI の実装詳細を知らなくて済む
+
+現状はまだ未整理だが、新しいエンドポイントを追加するときは `dependencies.py` に DI を書く方針で進める。
