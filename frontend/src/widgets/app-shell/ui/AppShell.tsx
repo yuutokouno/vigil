@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+
+// Routes that should not be wrapped with the AppShell (no auth/navigation UI)
+const SHELL_EXCLUDED_PATHS = ["/report"];
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -10,6 +14,15 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const pathname = usePathname();
+
+  const isExcluded = SHELL_EXCLUDED_PATHS.some(
+    (path) => pathname === path || pathname?.startsWith(`${path}/`),
+  );
+
+  if (isExcluded) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
