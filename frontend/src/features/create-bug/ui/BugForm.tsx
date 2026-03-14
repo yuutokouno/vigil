@@ -19,10 +19,13 @@ import {
   PRIORITY,
   CATEGORY,
   CATEGORY_LABELS,
+  DISCOVERY_STAGE,
+  DISCOVERY_STAGE_LABELS,
   type BugCreate,
   type Severity,
   type Priority,
   type Category,
+  type DiscoveryStage,
 } from "@/src/entities/bug/model/types";
 import { listMilestones } from "@/src/entities/milestone/api/milestone-api";
 import type { Milestone } from "@/src/entities/milestone/model/types";
@@ -44,6 +47,8 @@ export function BugForm() {
   const [assignedTo, setAssignedTo] = useState("");
   const [milestoneId, setMilestoneId] = useState("");
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [version, setVersion] = useState("");
+  const [discoveryStage, setDiscoveryStage] = useState<DiscoveryStage | "">("");
 
   useEffect(() => {
     listMilestones()
@@ -66,6 +71,8 @@ export function BugForm() {
       reported_by: reportedBy || null,
       assigned_to: assignedTo || null,
       milestone_id: milestoneId || null,
+      version: version || null,
+      discovery_stage: discoveryStage || null,
     };
     submit(data);
   };
@@ -174,6 +181,36 @@ export function BugForm() {
             </SelectTrigger>
             <SelectContent>
               {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="version">バージョン</Label>
+          <Input
+            id="version"
+            value={version}
+            onChange={(e) => setVersion(e.target.value)}
+            placeholder="例: v1.2.3"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>発見段階</Label>
+          <Select
+            value={discoveryStage}
+            onValueChange={(v) => setDiscoveryStage(v as DiscoveryStage)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="選択..." />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(DISCOVERY_STAGE_LABELS).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
                 </SelectItem>
