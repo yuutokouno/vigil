@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.infrastructure.connectors.hubspot.handler import HubSpotConnector
+from app.infrastructure.connectors.hubspot.polling import poll_hubspot_integrations
 from app.infrastructure.connectors.notion.handler import NotionConnector
 from app.infrastructure.connectors.notion.polling import poll_notion_integrations
 from app.infrastructure.connectors.registry import register_connector
@@ -47,6 +48,7 @@ async def startup() -> None:
     register_connector("hubspot", HubSpotConnector())
     register_connector("notion", NotionConnector())
     scheduler.add_job(poll_notion_integrations, "interval", minutes=5, id="notion_poll")
+    scheduler.add_job(poll_hubspot_integrations, "interval", minutes=5, id="hubspot_poll")
     scheduler.start()
 
 

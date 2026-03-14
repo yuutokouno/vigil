@@ -116,10 +116,18 @@ class NotionConnector(ConnectorABC):
         }
         async with httpx.AsyncClient(timeout=10.0) as client:
             try:
-                await client.patch(
+                resp = await client.patch(
                     f"{NOTION_API}/pages/{page_id}",
                     headers=headers,
                     json={"properties": properties},
+                )
+                resp.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                logger.warning(
+                    "Failed to update Notion page %s: HTTP %s %s",
+                    page_id,
+                    exc.response.status_code,
+                    exc.response.text,
                 )
             except httpx.HTTPError as exc:
                 logger.warning("Failed to update Notion page %s: %s", page_id, exc)
