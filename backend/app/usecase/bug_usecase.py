@@ -63,5 +63,8 @@ class BugUsecase:
         if not deleted:
             raise BugNotFoundError(bug_id)
 
+    async def get_bug_by_number(self, bug_number: int, project_id: str) -> BugResponse | None:
+        return await self._repository.get_by_bug_number(bug_number, project_id)
+
     async def get_stats(self, project_id: str) -> BugStatsResponse:
         return await self._repository.get_stats(project_id)

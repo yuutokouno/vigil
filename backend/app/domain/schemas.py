@@ -34,6 +34,7 @@ class Source(str, Enum):
     SLACK = "slack"
     HUBSPOT = "hubspot"
     NOTION = "notion"
+    GITHUB = "github"
     TEST = "test"
 
 
@@ -76,6 +77,8 @@ class BugUpdate(BaseModel):
     sprint: str | None = None
     milestone_id: str | None = None
     closed_at: datetime | None = None
+    github_pr_url: str | None = None
+    github_issue_url: str | None = None
 
     model_config = ConfigDict(extra="allow")
 
@@ -99,6 +102,7 @@ class BugResponse(BaseModel):
     milestone_id: str | None
     slack_message_url: str | None
     github_issue_url: str | None
+    github_pr_url: str | None = None
     external_ref: str | None
     version: str | None = None
     discovery_stage: DiscoveryStage | None = None

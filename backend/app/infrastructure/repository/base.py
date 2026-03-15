@@ -32,3 +32,6 @@ class BugRepository(ABC):
 
     @abstractmethod
     async def get_stats(self, project_id: str) -> BugStatsResponse: ...
+
+    @abstractmethod
+    async def get_by_bug_number(self, bug_number: int, project_id: str) -> BugResponse | None: ...
