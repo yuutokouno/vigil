@@ -29,30 +29,32 @@ class WorkflowColumnUsecase:
     def __init__(self, repo: WorkflowColumnRepository) -> None:
         self._repo = repo
 
-    async def list_all(self) -> list[WorkflowColumnResponse]:
-        return await self._repo.list_all()
+    async def list_all(self, project_id: str) -> list[WorkflowColumnResponse]:
+        return await self._repo.list_all(project_id)
 
-    async def create(self, data: WorkflowColumnCreate) -> WorkflowColumnResponse:
+    async def create(
+        self, data: WorkflowColumnCreate, project_id: str
+    ) -> WorkflowColumnResponse:
         if not _SLUG_RE.match(data.slug):
             raise ValueError(
                 f"Invalid slug '{data.slug}': must start with a lowercase letter "
                 "and contain only lowercase letters, digits, and underscores (max 50 chars)."
             )
-        return await self._repo.create(data)
+        return await self._repo.create(data, project_id)
 
     async def update(
-        self, column_id: str, data: WorkflowColumnUpdate
+        self, column_id: str, data: WorkflowColumnUpdate, project_id: str
     ) -> WorkflowColumnResponse:
-        result = await self._repo.update(column_id, data)
+        result = await self._repo.update(column_id, data, project_id)
         if result is None:
-            existing = await self._repo.get_by_id(column_id)
+            existing = await self._repo.get_by_id(column_id, project_id)
             if existing is None:
                 raise WorkflowColumnNotFoundError(column_id)
             raise WorkflowColumnFixedError(column_id)
         return result
 
-    async def delete(self, column_id: str) -> None:
-        result = await self._repo.delete(column_id)
+    async def delete(self, column_id: str, project_id: str) -> None:
+        result = await self._repo.delete(column_id, project_id)
         if result is False:
             raise WorkflowColumnNotFoundError(column_id)
         if result == "fixed":
