@@ -69,7 +69,10 @@ async def poll_notion_integrations() -> None:
                     if integration.last_received_at
                     else None
                 )
-                pages = await connector.query_database(token, database_id, last_ts)
+                pages = await connector.query_database(
+                    token, database_id, last_ts,
+                    trigger_rules=rules,  # Pass trigger_rules for Notion API-level filtering
+                )
 
                 for page in pages:
                     page_id = page.get("id", "")
@@ -80,8 +83,16 @@ async def poll_notion_integrations() -> None:
                     if await integration_repo.is_duplicate(str(integration.id), source_ref):
                         continue
 
+                    if integration.project_id is None:
+                        logger.warning(
+                            "Notion integration %s has no project_id; skipping page %s",
+                            integration.id,
+                            page_id,
+                        )
+                        continue
+
                     bug_create = await connector.transform(page, integration.field_mappings or [])
-                    bug = await bug_usecase.create_bug(bug_create)
+                    bug = await bug_usecase.create_bug(bug_create, str(integration.project_id))
                     await integration_repo.log_event(
                         str(integration.id),
                         "created",

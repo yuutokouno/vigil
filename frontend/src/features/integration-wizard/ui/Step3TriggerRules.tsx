@@ -147,6 +147,44 @@ export function Step3TriggerRules({ sourceType, triggerRules, onRulesChange }: P
             <option value="60">60分</option>
           </select>
         </div>
+        <hr className="border-border" />
+        <p className="text-xs text-muted-foreground">
+          フィルター条件 — 指定した条件に一致するページのみバグとして取り込みます (省略可)
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Status フィールド名</label>
+            <input
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              placeholder="例: Status"
+              value={(rules.filter_by_status_field as string) ?? ""}
+              onChange={(e) => updateRule("filter_by_status_field", e.target.value || undefined)}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">フィルター値</label>
+            <input
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              placeholder="例: Bug"
+              value={(rules.filter_by_status_value as string) ?? ""}
+              onChange={(e) => updateRule("filter_by_status_value", e.target.value || undefined)}
+            />
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Type フィールド名 (複数値 OR)</label>
+          <input
+            className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            placeholder="例: Type"
+            value={(rules.filter_by_type_field as string) ?? ""}
+            onChange={(e) => updateRule("filter_by_type_field", e.target.value || undefined)}
+          />
+        </div>
+        <TagInput
+          label="Type フィルター値 (どれか一致で取り込み)"
+          values={(rules.filter_by_type_values as string[]) ?? []}
+          onChange={(v) => updateRule("filter_by_type_values", v.length > 0 ? v : undefined)}
+        />
       </div>
     );
   }
