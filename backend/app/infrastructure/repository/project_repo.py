@@ -1,9 +1,11 @@
+import re
 import uuid
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.models import Organization, Project, ProjectMember, User
+from app.domain.schemas import ProjectMemberResponse
 
 
 class ProjectRepository:
@@ -23,6 +25,127 @@ class ProjectRepository:
     async def get_project(self, project_id: str) -> Project | None:
         result = await self._session.execute(
             select(Project).where(Project.id == uuid.UUID(project_id))
+        )
+        return result.scalar_one_or_none()
+
+    async def create_project(
+        self, org_id: str, name: str, slug: str, creator_user_id: str
+    ) -> Project:
+        """Create a new project under the given org, and add creator as owner."""
+        project = Project(
+            id=uuid.uuid4(),
+            org_id=uuid.UUID(org_id),
+            name=name,
+            slug=slug,
+        )
+        self._session.add(project)
+        await self._session.flush()
+
+        member = ProjectMember(
+            id=uuid.uuid4(),
+            project_id=project.id,
+            user_id=uuid.UUID(creator_user_id),
+            role="owner",
+        )
+        self._session.add(member)
+        await self._session.commit()
+        await self._session.refresh(project)
+        return project
+
+    async def get_members(self, project_id: str) -> list[ProjectMemberResponse]:
+        """Return all members of a project with user details."""
+        rows = await self._session.execute(
+            select(ProjectMember, User)
+            .join(User, User.id == ProjectMember.user_id)
+            .where(ProjectMember.project_id == uuid.UUID(project_id))
+            .order_by(ProjectMember.role.asc(), User.name.asc())
+        )
+        return [
+            ProjectMemberResponse(
+                user_id=str(member.user_id),
+                project_id=str(member.project_id),
+                role=member.role,
+                name=user.name,
+                github_id=user.github_id,
+                avatar_url=user.avatar_url,
+            )
+            for member, user in rows.all()
+        ]
+
+    async def get_member_role(self, project_id: str, user_id: str) -> str | None:
+        result = await self._session.execute(
+            select(ProjectMember).where(
+                ProjectMember.project_id == uuid.UUID(project_id),
+                ProjectMember.user_id == uuid.UUID(user_id),
+            )
+        )
+        member = result.scalar_one_or_none()
+        return member.role if member else None
+
+    async def invite_member(
+        self, project_id: str, github_id: str, role: str
+    ) -> ProjectMemberResponse | None:
+        """Find user by GitHub username and add them to the project."""
+        result = await self._session.execute(
+            select(User).where(User.github_id == github_id)
+        )
+        user = result.scalar_one_or_none()
+        if user is None:
+            return None
+
+        # Idempotent: if already a member, return existing
+        existing = await self._session.execute(
+            select(ProjectMember).where(
+                ProjectMember.project_id == uuid.UUID(project_id),
+                ProjectMember.user_id == user.id,
+            )
+        )
+        member = existing.scalar_one_or_none()
+        if member is None:
+            member = ProjectMember(
+                id=uuid.uuid4(),
+                project_id=uuid.UUID(project_id),
+                user_id=user.id,
+                role=role,
+            )
+            self._session.add(member)
+            await self._session.commit()
+            await self._session.refresh(member)
+
+        return ProjectMemberResponse(
+            user_id=str(user.id),
+            project_id=project_id,
+            role=member.role,
+            name=user.name,
+            github_id=user.github_id,
+            avatar_url=user.avatar_url,
+        )
+
+    async def remove_member(self, project_id: str, user_id: str) -> bool:
+        result = await self._session.execute(
+            select(ProjectMember).where(
+                ProjectMember.project_id == uuid.UUID(project_id),
+                ProjectMember.user_id == uuid.UUID(user_id),
+            )
+        )
+        member = result.scalar_one_or_none()
+        if member is None:
+            return False
+        await self._session.delete(member)
+        await self._session.commit()
+        return True
+
+    async def get_org_for_user(self, user_id: str) -> Organization | None:
+        """Return the org that the user owns (first one found)."""
+        result = await self._session.execute(
+            select(Organization)
+            .join(Project, Project.org_id == Organization.id)
+            .join(ProjectMember, ProjectMember.project_id == Project.id)
+            .where(
+                ProjectMember.user_id == uuid.UUID(user_id),
+                ProjectMember.role == "owner",
+            )
+            .limit(1)
         )
         return result.scalar_one_or_none()
 
@@ -94,7 +217,6 @@ class ProjectRepository:
 
 def _to_slug(name: str) -> str:
     """Convert a display name to a URL-safe slug (max 100 chars)."""
-    import re
     slug = name.lower()
     slug = re.sub(r"[^a-z0-9]+", "-", slug)
     slug = slug.strip("-")

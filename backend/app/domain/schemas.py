@@ -290,6 +290,29 @@ class OrgResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ---- Project management (#21) ----
+
+class ProjectCreate(BaseModel):
+    name: str
+    slug: str | None = None
+
+
+class ProjectMemberResponse(BaseModel):
+    user_id: str
+    project_id: str
+    role: str
+    name: str
+    github_id: str
+    avatar_url: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class InviteMemberRequest(BaseModel):
+    github_id: str  # GitHub username to invite
+    role: str = "member"
+
+
 # ---- Public (unauthenticated) bug creation ----
 
 class PublicBugCreate(BaseModel):
