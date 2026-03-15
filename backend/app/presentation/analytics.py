@@ -4,7 +4,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
-from sqlalchemy import Date, cast, func, select
+from sqlalchemy import Date, cast, func, literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.di.auth import ProjectAuthContext, verify_project_membership
@@ -244,9 +244,15 @@ async def get_heatmap(
     now = datetime.now(timezone.utc)
     start = now - timedelta(days=days)
 
+    # Use literal_column for the format string so PostgreSQL receives the same
+    # inline literal in SELECT, GROUP BY, and ORDER BY — avoiding the
+    # "must appear in GROUP BY" error caused by separate bind parameters.
+    iso_week_fmt = literal_column("'IYYY-\"W\"IW'")
+    week_expr = func.to_char(Bug.created_at, iso_week_fmt)
+
     rows = await session.execute(
         select(
-            func.to_char(Bug.created_at, 'IYYY-"W"IW').label("week"),
+            week_expr.label("week"),
             Bug.category,
             func.count().label("cnt"),
         )
@@ -255,8 +261,8 @@ async def get_heatmap(
             Bug.created_at >= start,
             Bug.created_at <= now,
         )
-        .group_by(func.to_char(Bug.created_at, 'IYYY-"W"IW'), Bug.category)
-        .order_by(func.to_char(Bug.created_at, 'IYYY-"W"IW'))
+        .group_by(week_expr, Bug.category)
+        .order_by(week_expr)
     )
 
     cells: list[HeatmapCell] = []
