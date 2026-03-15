@@ -289,3 +289,70 @@ class IntegrationEvent(Base):
         Index("idx_integration_events_integration_id", "integration_id", "created_at"),
         Index("idx_integration_events_source_ref", "integration_id", "source_ref"),
     )
+
+
+class Release(Base):
+    __tablename__ = "releases"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=True
+    )
+    version: Mapped[str] = mapped_column(String(50), nullable=False)
+    release_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    checklist_items: Mapped[list["TestChecklistItem"]] = relationship(
+        "TestChecklistItem", back_populates="release", cascade="all, delete-orphan"
+    )
+
+
+class TestScenario(Base):
+    __tablename__ = "test_scenarios"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=True
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text)
+    feature_tag: Mapped[str] = mapped_column(String(50), nullable=False)
+    steps_json: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    checklist_items: Mapped[list["TestChecklistItem"]] = relationship(
+        "TestChecklistItem", back_populates="scenario", cascade="all, delete-orphan"
+    )
+
+
+class TestChecklistItem(Base):
+    __tablename__ = "test_checklist_items"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    scenario_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("test_scenarios.id", ondelete="CASCADE"), nullable=False
+    )
+    release_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("releases.id", ondelete="CASCADE"), nullable=False
+    )
+    is_checked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    checked_by: Mapped[str | None] = mapped_column(String(100))
+    checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    scenario: Mapped["TestScenario"] = relationship("TestScenario", back_populates="checklist_items")
+    release: Mapped["Release"] = relationship("Release", back_populates="checklist_items")
