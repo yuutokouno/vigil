@@ -64,6 +64,22 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   other: "その他",
 };
 
+export const DISCOVERY_STAGE = {
+  internal: "internal",
+  qa: "qa",
+  aegis: "aegis",
+  customer: "customer",
+} as const;
+
+export type DiscoveryStage = (typeof DISCOVERY_STAGE)[keyof typeof DISCOVERY_STAGE];
+
+export const DISCOVERY_STAGE_LABELS: Record<DiscoveryStage, string> = {
+  internal: "内部テスト",
+  qa: "QA",
+  aegis: "Aegis",
+  customer: "顧客報告",
+};
+
 export type Bug = {
   id: string;
   title: string;
@@ -83,6 +99,9 @@ export type Bug = {
   milestone_id: string | null;
   slack_message_url: string | null;
   github_issue_url: string | null;
+  version: string | null;
+  discovery_stage: DiscoveryStage | null;
+  bug_number: number | null;
   created_at: string;
   updated_at: string;
   closed_at: string | null;
@@ -102,6 +121,8 @@ export type BugCreate = {
   assigned_to?: string | null;
   sprint?: string | null;
   milestone_id?: string | null;
+  version?: string | null;
+  discovery_stage?: DiscoveryStage | null;
 };
 
 export type BugUpdate = {

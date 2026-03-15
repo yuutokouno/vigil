@@ -14,6 +14,8 @@ import {
   LogOut,
   Github,
   ChevronsUpDown,
+  FlaskConical,
+  PackageCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/src/shared/ui";
@@ -28,6 +30,8 @@ const NAV_ITEMS = [
   { href: "/", label: "Issues", icon: Bug },
   { href: "/board", label: "Board", icon: Kanban },
   { href: "/milestones", label: "Milestones", icon: Milestone },
+  { href: "/test-scenarios", label: "Scenarios", icon: FlaskConical },
+  { href: "/releases", label: "Releases", icon: PackageCheck },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;

@@ -30,3 +30,15 @@ export type AnalyticsResponse = {
   previous: PeriodStats | null;
   milestones: MilestoneStat[];
 };
+
+export type HeatmapCell = {
+  week: string;
+  category: string;
+  count: number;
+};
+
+export type HeatmapResponse = {
+  weeks: string[];
+  categories: string[];
+  cells: HeatmapCell[];
+};

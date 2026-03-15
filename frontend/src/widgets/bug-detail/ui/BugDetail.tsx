@@ -7,9 +7,15 @@ import { StatusBadge } from "@/src/entities/bug/ui/StatusBadge";
 import { SeverityBadge } from "@/src/entities/bug/ui/SeverityBadge";
 import { StatusSelect } from "@/src/features/update-status/ui/StatusSelect";
 import type { Bug } from "@/src/entities/bug/model/types";
-import { CATEGORY_LABELS, type Category } from "@/src/entities/bug/model/types";
+import {
+  CATEGORY_LABELS,
+  DISCOVERY_STAGE_LABELS,
+  type Category,
+  type DiscoveryStage,
+} from "@/src/entities/bug/model/types";
 import { listWorkflowColumns } from "@/src/entities/workflow-column/api/workflow-column-api";
 import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
+import { AttachmentSection } from "./AttachmentSection";
 
 type BugDetailProps = {
   bug: Bug;
@@ -100,6 +106,14 @@ export function BugDetail({ bug: initialBug }: BugDetailProps) {
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:grid-cols-4">
+            {bug.bug_number != null && (
+              <div>
+                <dt className="text-muted-foreground">バグ番号</dt>
+                <dd className="font-medium font-mono">
+                  VIGIL-{String(bug.bug_number).padStart(4, "0")}
+                </dd>
+              </div>
+            )}
             <div>
               <dt className="text-muted-foreground">報告者</dt>
               <dd className="font-medium">{bug.reported_by ?? "-"}</dd>
@@ -119,6 +133,19 @@ export function BugDetail({ bug: initialBug }: BugDetailProps) {
             <div>
               <dt className="text-muted-foreground">環境</dt>
               <dd className="font-medium">{bug.environment ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">バージョン</dt>
+              <dd className="font-medium">{bug.version ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">発見段階</dt>
+              <dd className="font-medium">
+                {bug.discovery_stage
+                  ? DISCOVERY_STAGE_LABELS[bug.discovery_stage as DiscoveryStage] ??
+                    bug.discovery_stage
+                  : "-"}
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">登録日</dt>
@@ -147,6 +174,7 @@ export function BugDetail({ bug: initialBug }: BugDetailProps) {
           </dl>
         </CardContent>
       </Card>
+      <AttachmentSection bugId={bug.id} />
     </div>
   );
 }
