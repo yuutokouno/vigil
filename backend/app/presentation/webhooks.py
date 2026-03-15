@@ -1,3 +1,6 @@
+# backend/app/presentation/webhooks.py
+import logging
+
 from fastapi import APIRouter, Depends, Request
 
 from app.di.bug import get_bug_usecase
@@ -7,6 +10,8 @@ from app.infrastructure.connectors.registry import get_connector
 from app.infrastructure.connectors.slack.handler import SlackConnector
 from app.infrastructure.repository.integration_repo import IntegrationRepository
 from app.usecase.bug_usecase import BugUsecase
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
@@ -62,7 +67,8 @@ async def slack_webhook(
             results.append("skipped")
             continue
 
-        # For reaction_added, fetch the original message
+        # For reaction_added, fetch the original message.
+        # get_message is now safe and returns {} on failure rather than raising.
         event_data = event
         if event.get("type") == "reaction_added":
             item = event.get("item", {})
@@ -70,7 +76,27 @@ async def slack_webhook(
                 channel=item.get("channel", ""),
                 ts=item.get("ts", ""),
             )
-            event_data = {**message, "channel": item.get("channel", ""), "user": event.get("user", "")}
+            if not message:
+                # Could not retrieve the original message; log and skip this event.
+                logger.warning(
+                    "reaction_added: could not fetch original message for integration=%s "
+                    "channel=%s ts=%s",
+                    integration.id,
+                    item.get("channel"),
+                    item.get("ts"),
+                )
+                await integration_repo.log_event(
+                    str(integration.id),
+                    "error",
+                    error_message="reaction_added: original message fetch failed",
+                )
+                results.append("error")
+                continue
+            event_data = {
+                **message,
+                "channel": item.get("channel", ""),
+                "user": event.get("user", ""),
+            }
 
         # Deduplicate
         ts = str(event_data.get("ts", ""))
@@ -90,6 +116,11 @@ async def slack_webhook(
             )
             results.append("created")
         except Exception as e:
+            logger.exception(
+                "Slack webhook: bug creation failed for integration=%s source_ref=%s",
+                integration.id,
+                source_ref,
+            )
             await integration_repo.log_event(
                 str(integration.id), "error", source_ref=source_ref, error_message=str(e)
             )
@@ -101,7 +132,7 @@ async def slack_webhook(
             await connector.client.post_thread_message(
                 channel=channel,
                 thread_ts=ts,
-                text=f"✅ Vigilにバグチケットを作成しました: {bug.title}",
+                text=f"Vigilにバグチケットを作成しました: {bug.title}",
             )
         except Exception:
             pass  # Non-fatal: ticket was already created successfully
@@ -132,9 +163,15 @@ async def hubspot_webhook(
             results.append("skipped")
             continue
 
-        ticket_id = str(json_body.get("objectId", ""))
-        if ticket_id and await integration_repo.is_duplicate(str(integration.id), ticket_id):
-            await integration_repo.log_event(str(integration.id), "duplicate", source_ref=ticket_id)
+        # Use the same "hubspot:ticket:{id}" format as transform() produces for external_ref,
+        # ensuring that is_duplicate, log_event, and external_ref are all consistent.
+        raw_ticket_id = str(json_body.get("objectId", ""))
+        source_ref = f"hubspot:ticket:{raw_ticket_id}" if raw_ticket_id else ""
+
+        if source_ref and await integration_repo.is_duplicate(str(integration.id), source_ref):
+            await integration_repo.log_event(
+                str(integration.id), "duplicate", source_ref=source_ref
+            )
             results.append("duplicate")
             continue
 
@@ -142,12 +179,17 @@ async def hubspot_webhook(
             bug_create = await connector.transform(json_body, integration.field_mappings or [])
             bug = await bug_usecase.create_bug(bug_create)
             await integration_repo.log_event(
-                str(integration.id), "created", source_ref=ticket_id, bug_id=str(bug.id)
+                str(integration.id), "created", source_ref=source_ref, bug_id=str(bug.id)
             )
             results.append("created")
         except Exception as e:
+            logger.exception(
+                "HubSpot webhook: bug creation failed for integration=%s source_ref=%s",
+                integration.id,
+                source_ref,
+            )
             await integration_repo.log_event(
-                str(integration.id), "error", source_ref=ticket_id, error_message=str(e)
+                str(integration.id), "error", source_ref=source_ref, error_message=str(e)
             )
             results.append("error")
 
