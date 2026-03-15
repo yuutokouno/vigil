@@ -16,6 +16,12 @@ export default function SettingsPage() {
         >
           連携管理
         </Link>
+        <Link
+          href="/settings/projects"
+          className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          プロジェクト管理
+        </Link>
       </div>
 
       <WorkflowColumnSettings />

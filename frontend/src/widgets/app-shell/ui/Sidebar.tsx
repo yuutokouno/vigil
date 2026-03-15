@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Bug,
   Kanban,
@@ -12,11 +13,16 @@ import {
   PanelLeft,
   LogOut,
   Github,
+  ChevronsUpDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/src/shared/ui";
 import { useAuth } from "@/src/features/auth/model/use-auth";
 import { UserAvatar } from "@/src/entities/user/ui/UserAvatar";
+import { listProjects, switchProject } from "@/src/entities/project/api/project-api";
+import type { Project } from "@/src/entities/project/model/types";
+import { getToken, setToken } from "@/src/shared/lib/auth-token";
+import { decodeJwtPayload } from "@/src/shared/lib/jwt";
 
 const NAV_ITEMS = [
   { href: "/", label: "Issues", icon: Bug },
@@ -33,7 +39,29 @@ type SidebarProps = {
 
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isLoading, login, logout } = useAuth();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    const payload = decodeJwtPayload(token);
+    setCurrentProjectId(payload?.project_id ?? null);
+    listProjects().then(setProjects).catch(() => {});
+  }, []);
+
+  const handleProjectChange = async (projectId: string) => {
+    try {
+      const result = await switchProject(projectId);
+      setToken(result.token);
+      setCurrentProjectId(result.project_id);
+      router.refresh();
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <aside
@@ -71,6 +99,27 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           )}
         </Button>
       </div>
+
+      {/* Project switcher */}
+      {!isCollapsed && projects.length > 0 && (
+        <div className="border-b border-sidebar-border px-1.5 py-2">
+          <div className="flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-secondary/50">
+            <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <select
+              value={currentProjectId ?? ""}
+              onChange={(e) => handleProjectChange(e.target.value)}
+              className="flex-1 truncate bg-transparent text-[12px] text-foreground cursor-pointer focus:outline-none"
+              aria-label="プロジェクト切り替え"
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-0.5 px-1.5 py-2">
