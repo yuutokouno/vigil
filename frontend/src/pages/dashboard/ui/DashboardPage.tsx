@@ -7,6 +7,7 @@ import { listWorkflowColumns } from "@/src/entities/workflow-column/api/workflow
 import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 import { ViewToggle } from "@/src/features/view-toggle/ui/ViewToggle";
 import { StatsCards } from "@/src/widgets/stats-cards/ui/StatsCards";
+import { StopTheLineBanner } from "@/src/widgets/stop-the-line/ui/StopTheLineBanner";
 import { BugList } from "@/src/widgets/bug-list/ui/BugList";
 
 export function DashboardPage() {
@@ -25,6 +26,8 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <StopTheLineBanner />
+
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold tracking-tight">Issues</h1>
         <ViewToggle />

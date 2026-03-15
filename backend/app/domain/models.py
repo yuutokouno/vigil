@@ -416,3 +416,33 @@ class BugBashSubmission(Base):
     __table_args__ = (
         UniqueConstraint("event_id", "bug_id", name="uq_bug_bash_submission"),
     )
+
+
+
+class StopTheLineEvent(Base):
+    """Records each time a stop-the-line condition was triggered for a project.
+
+    Used to deduplicate Slack notifications (only notify once per 4-hour window)
+    and to maintain an audit trail of quality gate breaches.
+    """
+
+    __tablename__ = "stop_the_line_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    triggered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    critical_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    high_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    threshold_critical: Mapped[int] = mapped_column(Integer, nullable=False)
+    threshold_high: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    __table_args__ = (
+        Index("ix_stop_the_line_project_resolved", "project_id", "resolved_at"),
+    )

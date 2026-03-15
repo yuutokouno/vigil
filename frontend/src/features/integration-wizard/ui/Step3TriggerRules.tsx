@@ -72,6 +72,64 @@ export function Step3TriggerRules({ sourceType, triggerRules, onRulesChange }: P
           values={(rules.keywords as string[]) ?? []}
           onChange={(v) => updateRule("keywords", v)}
         />
+
+        <div className="rounded-md border border-dashed p-3 space-y-3">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Stop the Line しきい値
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Critical バグ上限
+              </label>
+              <input
+                type="number"
+                min={1}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                value={(rules.stop_the_line_critical as number) ?? 3}
+                onChange={(e) =>
+                  updateRule("stop_the_line_critical", Number(e.target.value))
+                }
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                この件数以上でアラート
+              </p>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                High バグ上限
+              </label>
+              <input
+                type="number"
+                min={1}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                value={(rules.stop_the_line_high as number) ?? 10}
+                onChange={(e) =>
+                  updateRule("stop_the_line_high", Number(e.target.value))
+                }
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                この件数以上でアラート
+              </p>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              通知チャンネル
+            </label>
+            <input
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-ring"
+              placeholder="#alerts または C01XXXXX"
+              value={(rules.notification_channel as string) ?? ""}
+              onChange={(e) =>
+                updateRule("notification_channel", e.target.value)
+              }
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Stop the Line 通知の送信先 Slack チャンネル
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

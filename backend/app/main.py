@@ -22,7 +22,9 @@ from app.presentation.public import router as public_router
 from app.presentation.test_scenarios import router as test_scenarios_router
 from app.presentation.users import router as users_router
 from app.presentation.webhooks import router as webhooks_router
+from app.presentation.stop_the_line import router as stop_the_line_router
 from app.presentation.workflow_columns import router as workflow_columns_router
+from app.scheduler.stop_the_line import check_stop_the_line
 from app.scheduler.test_reminder import send_test_checklist_reminders
 
 app = FastAPI(title="Vigil", description="Bug tracking dashboard for archaive")
@@ -56,6 +58,7 @@ app.include_router(public_router)
 app.include_router(test_scenarios_router)
 app.include_router(users_router)
 app.include_router(webhooks_router)
+app.include_router(stop_the_line_router)
 app.include_router(workflow_columns_router)
 
 
@@ -71,6 +74,8 @@ async def startup() -> None:
     scheduler.add_job(
         send_test_checklist_reminders, "cron", hour=10, minute=0, id="test_reminder"
     )
+    # Every 30 minutes: check stop-the-line thresholds and notify Slack if exceeded
+    scheduler.add_job(check_stop_the_line, "interval", minutes=30, id="stop_the_line_check")
     scheduler.start()
 
 
