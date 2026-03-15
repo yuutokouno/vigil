@@ -83,9 +83,26 @@ function SectionHeading({ icon: Icon, children }: { icon: React.ElementType; chi
   );
 }
 
+const TOC_ITEMS = [
+  { href: "#login",        label: "ログイン" },
+  { href: "#issues",       label: "Issues" },
+  { href: "#new-bug",      label: "バグを登録する" },
+  { href: "#board",        label: "Board" },
+  { href: "#milestones",   label: "Milestones" },
+  { href: "#scenarios",    label: "テストシナリオ" },
+  { href: "#releases",     label: "リリース管理" },
+  { href: "#analytics",    label: "Analytics" },
+  { href: "#settings",     label: "ワークフロー設定" },
+  { href: "#integrations", label: "連携管理" },
+  { href: "#projects",     label: "プロジェクト管理" },
+  { href: "#report",       label: "外部バグ報告" },
+];
+
 export default function GuidePage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-12 py-2">
+    <div className="flex gap-8">
+      {/* Main content */}
+      <div className="min-w-0 flex-1 space-y-12 py-2">
 
       {/* Header */}
       <div>
@@ -345,6 +362,25 @@ export default function GuidePage() {
         </Tip>
       </section>
 
+      </div>{/* end main content */}
+
+      {/* Right TOC */}
+      <aside className="hidden w-44 shrink-0 lg:block">
+        <div className="sticky top-4 space-y-1">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            目次
+          </p>
+          {TOC_ITEMS.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="block rounded px-2 py-1 text-[12px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </aside>
     </div>
   );
 }
