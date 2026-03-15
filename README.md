@@ -20,44 +20,6 @@
 
 ---
 
-## バグ記録フォーマット（予定）
-
-Vigil に登録するバグは以下の項目を標準フォーマットとする。
-CS・QA・開発が同じテンプレートで起票することで、情報不足による手戻りをなくす。
-
-| フィールド | 説明 |
-|-----------|------|
-| **不具合の内容** | 何が起きているか（1〜2文で端的に） |
-| **発生環境** | 本番 / ステージング / ローカル など |
-| **発生バージョン** | 該当リリースバージョン |
-| **詳細** | 実際の挙動・期待する挙動 |
-| **再現手順** | ステップバイステップで誰でも再現できる粒度 |
-| **発見段階** | 内部テスト / QA / Aegis / 顧客報告 のいずれか |
-| **エビデンス** | スクリーンショット・ログ・動画など |
-| **カテゴリ** | 機能別（例: 認証・決済）/ レイヤ別（UI / API / DB）— 後追いでも可 |
-
----
-
-## 起票〜クローズフロー（予定）
-
-```
-発見（CS / QA / 開発 / 顧客）
-  ↓
-Vigil に標準フォーマットで起票
-  ↓
-Severity・Priority 設定 → 担当者アサイン
-  ↓
-修正 → PR にバグ番号を紐付け（GitHub 連携）
-  ↓
-修正箇所を中心とした手動テスト（重み付けあり）
-  ↓
-確認 OK → クローズ
-```
-
-CS やお客様からの報告も同じフォームで入力できる導線を整備する予定。
-
----
-
 ## 現在の機能
 
 - **Issues** — バグ一覧 (テーブル / カンバン切り替え)、インライン編集、Severity・Status フィルタ
@@ -65,13 +27,62 @@ CS やお客様からの報告も同じフォームで入力できる導線を�
 - **Milestones** — マイルストーン管理とバグの紐付け、進捗バー表示
 - **Analytics** — バグ発生 / 解決トレンド、Severity ドーナツチャート、担当者別クローズ数、前期間比較
 - **Integration Hub** — Slack webhook / HubSpot polling / Notion polling で外部イベントを自動バグ化
-- **Settings** — ワークフローカラム管理、統合管理
+- **Settings** — ワークフローカラム管理（追加・改名・削除・並び替え）、統合管理
+
+---
+
+## バグ記録フォーマット
+
+### 現在フォームで入力できる項目
+
+| フィールド | 説明 |
+|-----------|------|
+| **タイトル** | 何が起きているか（1〜2文で端的に） |
+| **詳細** | 実際の挙動・期待する挙動・再現手順など |
+| **Severity** | Critical / High / Medium / Low |
+| **Status** | ワークフローカラムに基づくステータス |
+| **担当者** | アサイン先ユーザー |
+| **マイルストーン** | 紐付けるマイルストーン |
+
+### 近日実装予定（P1）
+
+以下のフィールドをバグ詳細フォームに追加予定:
+
+| フィールド | 説明 |
+|-----------|------|
+| **発生環境** | 本番 / ステージング / ローカル など |
+| **発生バージョン** | 該当リリースバージョン |
+| **発見段階** | 内部テスト / QA / Aegis / 顧客報告 のいずれか |
+| **エビデンス添付** | スクリーンショット・ログ・動画など |
+| **カテゴリ** | 機能別（例: 認証・決済）/ レイヤ別（UI / API / DB） |
+
+また、CS・顧客向け外部起票フォーム（認証不要、バグ番号発行）も P1 で対応予定。
+
+---
+
+## 起票〜クローズフロー
+
+```
+発見（CS / QA / 開発 / 顧客）
+  ↓
+Vigil に起票（タイトル・詳細・Severity を設定）
+  ↓
+担当者アサイン → ワークフローカラムに沿って進捗管理
+  ↓
+修正 → PR にバグ番号を紐付け（GitHub 連携: ロードマップ P1）
+  ↓
+修正箇所を中心とした手動テスト（重み付けあり）
+  ↓
+確認 OK → クローズ
+```
 
 ---
 
 ## ロードマップ
 
-### GitHub 連携（予定）
+### P1 — 近日実装予定
+
+#### GitHub 連携
 
 | 機能 | 内容 |
 |------|------|
@@ -79,19 +90,19 @@ CS やお客様からの報告も同じフォームで入力できる導線を�
 | Issue 双方向同期 | GitHub Issue の作成 / クローズを Vigil に反映（Integration Hub 経由） |
 | マージ時ステータス更新 | PR マージ時に対応バグを自動で `in_review` に遷移 |
 
-### 不具合管理の強化（予定）
+#### 不具合管理の強化
 
 - バグ詳細フォームに標準フィールド（発生環境・バージョン・発見段階・エビデンス添付）を追加
 - カテゴリタグ（機能別 / レイヤ別）の管理画面
 - CS・顧客向け外部起票フォーム（認証不要、バグ番号発行）
 
-### バグ発生の可視化（予定）
+### P2 — バグ発生の可視化
 
 - 機能別・レイヤ別（UI / API / DB）のバグ発生数をヒートマップ表示
 - 「どこで何件・どの Severity のバグが集中しているか」を Analytics ページに追加
 - 期間・バージョン・担当者でのドリルダウン
 
-### リスクベーステスト + Slack 通知（予定）
+### P3 — リスクベーステスト + Slack 通知
 
 **考え方**: バグの発生状況をもとに「どのシナリオテストをいつ走らせるべきか」を自動で判断し、Slack で通知する。
 
@@ -126,19 +137,19 @@ CS やお客様からの報告も同じフォームで入力できる導線を�
 
 ```
 [Slack 通知]
-📋 リリース前テストチェックリスト (v1.4.0)
+リリース前テストチェックリスト (v1.4.0)
 
 優先度 High:
-  ☐ 認証フロー — 直近 7日で Critical 2件・顧客報告あり
-  ☐ 決済フロー — 直近 14日で High 3件
+  [ ] 認証フロー — 直近 7日で Critical 2件・顧客報告あり
+  [ ] 決済フロー — 直近 14日で High 3件
 
 優先度 Medium:
-  ☐ ユーザー管理 — 修正コミットあり
+  [ ] ユーザー管理 — 修正コミットあり
 
 残り 3/5 未完了 — リリースまで 2日
 ```
 
-### テナント分離（予定）
+### P3 — テナント分離
 
 **考え方**: プロダクト・チーム・顧客ごとにデータを完全に分離し、1 つの Vigil インスタンスで複数プロジェクトを安全に運用できるようにする。
 
@@ -171,11 +182,11 @@ Organization（組織）
 
 | レイヤー | 採用技術 |
 |---------|---------|
-| Frontend | Next.js 15 (App Router) + TypeScript + Tailwind CSS v3 + shadcn/ui |
+| Frontend | Next.js 14 (App Router) + TypeScript + Tailwind CSS v3 + shadcn/ui |
 | Backend | FastAPI + SQLAlchemy 2 (async) + Alembic |
 | DB | PostgreSQL 16 |
 | 認証 | GitHub OAuth + JWT |
-| スケジューラ | APScheduler 3 (Notion ポーリング 5分間隔) |
+| スケジューラ | APScheduler 3 (Notion / HubSpot ポーリング) |
 | アーキテクチャ | FSD (Feature-Sliced Design) + オニオンアーキテクチャ |
 
 ---
@@ -197,10 +208,16 @@ cp .env.example .env
 
 | 変数 | 説明 | デフォルト |
 |------|------|-----------|
+| `POSTGRES_USER` | PostgreSQL ユーザー名 | `vigil` |
+| `POSTGRES_PASSWORD` | PostgreSQL パスワード | `vigil` |
+| `POSTGRES_DB` | PostgreSQL DB 名 | `vigil` |
+| `DATABASE_URL` | バックエンドの DB 接続文字列 | `postgresql+asyncpg://vigil:vigil@db:5432/vigil` |
+| `CORS_ORIGINS` | 許可する CORS オリジン（カンマ区切り） | `http://localhost:3000` |
 | `GITHUB_CLIENT_ID` | GitHub OAuth App の Client ID | (空 = 認証無効) |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth App の Client Secret | (空) |
 | `JWT_SECRET` | JWT 署名キー | `vigil-dev-secret` |
-| `ENCRYPTION_KEY` | 統合 credentials の暗号化キー (Fernet) | (自動生成) |
+| `ENCRYPTION_KEY` | 統合 credentials の暗号化キー (Fernet) | (要手動設定) |
+| `NEXT_PUBLIC_API_URL` | フロントエンドからの API ベース URL | `http://localhost:8000` |
 
 ### 起動
 
@@ -230,19 +247,24 @@ docker-compose exec backend uv run alembic upgrade head
 vigil/
 ├── backend/
 │   ├── app/
-│   │   ├── connectors/       # Slack / HubSpot / Notion コネクタ
-│   │   ├── domain/           # モデル・スキーマ
-│   │   ├── presentation/     # FastAPI ルーター
-│   │   ├── repository/       # DB アクセス層
-│   │   └── usecase/          # ビジネスロジック
-│   └── alembic/versions/     # マイグレーション
+│   │   ├── connectors/           # Slack / HubSpot / Notion コネクタ
+│   │   ├── di/                   # DI（依存性注入）層
+│   │   ├── domain/               # モデル・スキーマ・リポジトリ抽象定義
+│   │   │   └── repository/       # リポジトリ抽象インターフェース
+│   │   ├── infrastructure/       # DB・リポジトリ・外部連携の実装
+│   │   │   ├── db/               # DB セッション管理
+│   │   │   └── repository/       # リポジトリ実装
+│   │   ├── presentation/         # FastAPI ルーター
+│   │   └── usecase/              # ビジネスロジック
+│   └── alembic/versions/         # マイグレーション
 └── frontend/
-    └── src/
-        ├── entities/          # 型定義 + API クライアント
-        ├── features/          # UI ロジック (hooks + コンポーネント)
-        ├── pages/             # ページ単位の UI 組み立て
-        ├── shared/            # 共通ユーティリティ
-        └── widgets/           # 複合ウィジェット (AppShell, KanbanBoard 等)
+    ├── app/                       # Next.js App Router（ページファイルのみ）
+    └── src/                       # 実装コード（FSD レイヤー構造）
+        ├── entities/              # 型定義 + API クライアント
+        ├── features/              # UI ロジック (hooks + コンポーネント)
+        ├── pages/                 # ページ単位の UI 組み立て
+        ├── shared/                # 共通ユーティリティ
+        └── widgets/               # 複合ウィジェット (AppShell 等)
 ```
 
 ---
