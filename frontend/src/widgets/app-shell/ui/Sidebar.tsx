@@ -17,6 +17,7 @@ import {
   FlaskConical,
   PackageCheck,
   BookOpen,
+  Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/src/shared/ui";
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { href: "/milestones", label: "Milestones", icon: Milestone },
   { href: "/test-scenarios", label: "Scenarios", icon: FlaskConical },
   { href: "/releases", label: "Releases", icon: PackageCheck },
+  { href: "/bug-bash", label: "Bug Bash", icon: Trophy },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/guide", label: "ガイド", icon: BookOpen },

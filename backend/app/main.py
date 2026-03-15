@@ -13,6 +13,7 @@ from app.infrastructure.connectors.slack.handler import SlackConnector
 from app.presentation.analytics import router as analytics_router
 from app.presentation.attachments import router as attachments_router
 from app.presentation.auth import router as auth_router
+from app.presentation.bug_bash import router as bug_bash_router
 from app.presentation.bugs import router as bugs_router
 from app.presentation.integrations import router as integrations_router
 from app.presentation.milestones import router as milestones_router
@@ -46,6 +47,7 @@ app.add_middleware(
 app.include_router(analytics_router)
 app.include_router(attachments_router)
 app.include_router(auth_router)
+app.include_router(bug_bash_router)
 app.include_router(bugs_router)
 app.include_router(integrations_router)
 app.include_router(milestones_router)
