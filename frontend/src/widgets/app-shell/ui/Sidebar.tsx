@@ -35,6 +35,7 @@ const NAV_ITEMS = [
   { href: "/releases", label: "Releases", icon: PackageCheck },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
   { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/guide", label: "ガイド", icon: BookOpen },
 ] as const;
 
 type SidebarProps = {
@@ -157,21 +158,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer: guide link + auth */}
+      {/* Footer: auth */}
       <div className="shrink-0 border-t border-sidebar-border px-1.5 py-2 space-y-1">
-        {/* Guide link */}
-        <Link
-          href="/guide"
-          className={cn(
-            "flex items-center rounded-md text-[13px] font-medium transition-colors text-muted-foreground hover:bg-secondary hover:text-foreground",
-            isCollapsed
-              ? "justify-center px-2 py-1.5"
-              : "gap-2.5 px-2 py-1.5"
-          )}
-        >
-          <BookOpen className="h-4 w-4 shrink-0" />
-          {!isCollapsed && <span>ガイド</span>}
-        </Link>
         {/* Auth */}
         {!isLoading && (
           <>
