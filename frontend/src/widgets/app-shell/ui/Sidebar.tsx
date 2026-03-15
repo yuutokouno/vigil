@@ -16,6 +16,7 @@ import {
   ChevronsUpDown,
   FlaskConical,
   PackageCheck,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/src/shared/ui";
@@ -156,8 +157,21 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer: auth */}
+      {/* Footer: guide link + auth */}
       <div className="shrink-0 border-t border-sidebar-border px-1.5 py-2 space-y-1">
+        {/* Guide link */}
+        <Link
+          href="/guide"
+          className={cn(
+            "flex items-center rounded-md text-[13px] font-medium transition-colors text-muted-foreground hover:bg-secondary hover:text-foreground",
+            isCollapsed
+              ? "justify-center px-2 py-1.5"
+              : "gap-2.5 px-2 py-1.5"
+          )}
+        >
+          <BookOpen className="h-4 w-4 shrink-0" />
+          {!isCollapsed && <span>ガイド</span>}
+        </Link>
         {/* Auth */}
         {!isLoading && (
           <>
