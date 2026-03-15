@@ -37,6 +37,13 @@ class Source(str, Enum):
     TEST = "test"
 
 
+class DiscoveryStage(str, Enum):
+    INTERNAL = "internal"
+    QA = "qa"
+    AEGIS = "aegis"
+    CUSTOMER = "customer"
+
+
 class BugCreate(BaseModel):
     title: str
     description: str | None = None
@@ -54,6 +61,8 @@ class BugCreate(BaseModel):
     milestone_id: str | None = None
     slack_message_url: str | None = None
     external_ref: str | None = None
+    version: str | None = None
+    discovery_stage: DiscoveryStage | None = None
 
 
 class BugUpdate(BaseModel):
@@ -91,9 +100,23 @@ class BugResponse(BaseModel):
     slack_message_url: str | None
     github_issue_url: str | None
     external_ref: str | None
+    version: str | None = None
+    discovery_stage: DiscoveryStage | None = None
+    bug_number: int | None = None
     created_at: datetime
     updated_at: datetime
     closed_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
+class AttachmentResponse(BaseModel):
+    id: str
+    bug_id: str
+    file_name: str
+    file_url: str
+    file_size: int | None
+    created_at: datetime
 
     model_config = {"from_attributes": True}
 
@@ -240,3 +263,46 @@ class TestConnectionResponse(BaseModel):
 
 class SchemaFetchRequest(BaseModel):
     credentials: dict[str, str]
+
+
+# ---- Project / Org ----
+
+class ProjectResponse(BaseModel):
+    id: str
+    org_id: str
+    name: str
+    slug: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class OrgResponse(BaseModel):
+    id: str
+    name: str
+    slug: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ---- Public (unauthenticated) bug creation ----
+
+class PublicBugCreate(BaseModel):
+    """Minimal schema for the public report form — no auth required."""
+    title: str
+    description: str | None = None
+    steps_to_reproduce: str | None = None
+    environment: str | None = None
+    severity: Severity = Severity.MEDIUM
+    reported_by: str | None = None
+    version: str | None = None
+
+
+class PublicBugResponse(BaseModel):
+    bug_number: int
+    title: str
+    severity: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

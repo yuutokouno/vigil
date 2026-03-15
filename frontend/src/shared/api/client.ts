@@ -1,4 +1,4 @@
-import { getToken } from "@/src/shared/lib/auth-token";
+import { getToken, clearToken } from "@/src/shared/lib/auth-token";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -45,6 +45,11 @@ export async function apiClient<T>(
   });
 
   if (!response.ok) {
+    // Stale or invalid token — force re-login
+    if (response.status === 401) {
+      clearToken();
+      window.location.replace("/login");
+    }
     const error = await response.json().catch(() => ({}));
     throw new ApiError(response.status, error.detail ?? "Request failed");
   }

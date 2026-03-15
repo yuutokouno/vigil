@@ -10,6 +10,15 @@ import { AssigneeTable } from "./AssigneeTable";
 
 type Period = "7d" | "30d" | "90d";
 
+function formatCloseTime(hours: number): string {
+  if (hours < 1) return "1時間未満";
+  const days = Math.floor(hours / 24);
+  const remainHours = Math.round(hours % 24);
+  if (days === 0) return `${Math.round(hours)}時間`;
+  if (remainHours === 0) return `${days}日`;
+  return `${days}日${remainHours}時間`;
+}
+
 const PERIOD_LABELS: Record<Period, string> = {
   "7d": "7\u65e5",
   "30d": "30\u65e5",
@@ -114,7 +123,7 @@ export function AnalyticsPage() {
               },
               {
                 label: "\u5e73\u5747\u30af\u30ed\u30fc\u30ba\u6642\u9593",
-                value: `${data.current.avg_close_hours}h`,
+                value: formatCloseTime(data.current.avg_close_hours),
               },
               {
                 label: "\u30a2\u30af\u30c6\u30a3\u30d6\u30de\u30a4\u30eb\u30b9\u30c8\u30fc\u30f3",

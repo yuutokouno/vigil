@@ -87,6 +87,7 @@ export function BugList({ initialFilters }: BugListProps) {
         <>
           <BugTable
             bugs={bugs}
+            workflowColumns={workflowColumns}
             onBugUpdated={(updatedBug) => {
               setBugs((prev) =>
                 prev.map((b) => (b.id === updatedBug.id ? updatedBug : b))

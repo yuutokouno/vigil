@@ -2,6 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.di.auth import ProjectAuthContext, verify_project_membership
 from app.di.integration import get_integration_usecase
 from app.domain.schemas import (
     IntegrationCreate,
@@ -17,13 +18,17 @@ router = APIRouter(prefix="/api/integrations", tags=["integrations"])
 
 
 @router.get("", response_model=list[IntegrationResponse])
-async def list_integrations(usecase: IntegrationUsecase = Depends(get_integration_usecase)) -> list[IntegrationResponse]:
+async def list_integrations(
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
+    usecase: IntegrationUsecase = Depends(get_integration_usecase),
+) -> list[IntegrationResponse]:
     return await usecase.list_all()
 
 
 @router.post("", response_model=IntegrationResponse, status_code=201)
 async def create_integration(
     data: IntegrationCreate,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> IntegrationResponse:
     return await usecase.create(data)
@@ -34,6 +39,7 @@ async def create_integration(
 async def get_source_schema(
     source_type: str,
     body: SchemaFetchRequest,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> list[dict[str, Any]]:
     """Return available source fields for field mapping UI (uses provided credentials, not saved)."""
@@ -43,6 +49,7 @@ async def get_source_schema(
 @router.get("/{integration_id}", response_model=IntegrationResponse)
 async def get_integration(
     integration_id: str,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> IntegrationResponse:
     try:
@@ -55,6 +62,7 @@ async def get_integration(
 async def update_integration(
     integration_id: str,
     data: IntegrationUpdate,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> IntegrationResponse:
     try:
@@ -66,6 +74,7 @@ async def update_integration(
 @router.delete("/{integration_id}", status_code=204)
 async def delete_integration(
     integration_id: str,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> None:
     try:
@@ -77,6 +86,7 @@ async def delete_integration(
 @router.post("/{integration_id}/test", response_model=TestConnectionResponse)
 async def test_integration(
     integration_id: str,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> TestConnectionResponse:
     try:
@@ -90,6 +100,7 @@ async def test_integration(
 async def list_integration_events(
     integration_id: str,
     limit: int = Query(50, ge=1, le=200),
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> list[IntegrationEventResponse]:
     try:

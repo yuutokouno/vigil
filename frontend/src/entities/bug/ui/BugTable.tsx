@@ -26,18 +26,16 @@ import {
   type Severity,
   type Status,
 } from "@/src/entities/bug/model/types";
+import type { WorkflowColumn } from "@/src/entities/workflow-column/model/types";
 import { updateBug } from "@/src/entities/bug/api/bug-api";
 
 type BugTableProps = {
   bugs: Bug[];
   onBugUpdated?: (updatedBug: Bug) => void;
+  workflowColumns?: WorkflowColumn[];
 };
 
 const SEVERITY_OPTIONS = Object.entries(SEVERITY_LABELS).map(
-  ([value, label]) => ({ value, label })
-);
-
-const STATUS_OPTIONS = Object.entries(STATUS_LABELS).map(
   ([value, label]) => ({ value, label })
 );
 
@@ -48,7 +46,14 @@ const PRIORITY_OPTIONS = [
   { value: "P3", label: "P3" },
 ];
 
-export function BugTable({ bugs, onBugUpdated }: BugTableProps) {
+export function BugTable({ bugs, onBugUpdated, workflowColumns }: BugTableProps) {
+  const statusOptions = workflowColumns && workflowColumns.length > 0
+    ? workflowColumns.map((c) => ({ value: c.slug, label: c.name }))
+    : Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }));
+
+  const statusLabel = (slug: string) =>
+    workflowColumns?.find((c) => c.slug === slug)?.name ?? STATUS_LABELS[slug as Status] ?? slug;
+
   const handleSave = async (
     bug: Bug,
     field: keyof BugUpdate,
@@ -131,13 +136,13 @@ export function BugTable({ bugs, onBugUpdated }: BugTableProps) {
         cell: ({ row }) => {
           const bug = row.original;
           if (!onBugUpdated) {
-            return STATUS_LABELS[bug.status as Status];
+            return statusLabel(bug.status);
           }
           return (
             <EditableSelectCell
               value={bug.status}
               field="status"
-              options={STATUS_OPTIONS}
+              options={statusOptions}
               onSave={(field, value) => handleSave(bug, field, value)}
             />
           );
@@ -195,7 +200,9 @@ export function BugTable({ bugs, onBugUpdated }: BugTableProps) {
         ),
       },
     ],
-    [onBugUpdated]
+    // statusOptions/statusLabel depend on workflowColumns; include it in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [onBugUpdated, workflowColumns]
   );
 
   const table = useReactTable({

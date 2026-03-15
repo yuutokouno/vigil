@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.di.auth import ProjectAuthContext, verify_project_membership
 from app.di.bug import get_bug_usecase
 from app.domain.schemas import (
     BugCreate,
@@ -19,8 +20,10 @@ router = APIRouter(prefix="/api/bugs", tags=["bugs"])
 @router.post("", response_model=BugResponse, status_code=201)
 async def create_bug(
     bug: BugCreate,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
+    # TODO(#48): inject _auth.project_id into bug_create
     return await usecase.create_bug(bug)
 
 
@@ -34,6 +37,7 @@ async def list_bugs(
     order: str = "desc",
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     params = BugListParams(
@@ -46,11 +50,13 @@ async def list_bugs(
         page=page,
         limit=limit,
     )
+    # TODO(#48): pass _auth.project_id to usecase for project-scoped filtering
     return await usecase.list_bugs(params)
 
 
 @router.get("/stats", response_model=BugStatsResponse)
 async def get_stats(
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     return await usecase.get_stats()
@@ -59,6 +65,7 @@ async def get_stats(
 @router.get("/{bug_id}", response_model=BugResponse)
 async def get_bug(
     bug_id: str,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     try:
@@ -71,6 +78,7 @@ async def get_bug(
 async def update_bug(
     bug_id: str,
     bug: BugUpdate,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     try:
@@ -82,6 +90,7 @@ async def update_bug(
 @router.delete("/{bug_id}", status_code=204)
 async def delete_bug(
     bug_id: str,
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     try:

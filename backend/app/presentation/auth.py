@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timedelta, timezone
 
 import httpx
@@ -9,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.infrastructure.db.database import get_session
 from app.domain.schemas import UserResponse
+from app.infrastructure.repository.project_repo import ProjectRepository
 from app.infrastructure.repository.user_repo import UserRepository
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -19,17 +21,30 @@ GITHUB_USER_URL = "https://api.github.com/user"
 
 
 @router.get("/github")
-async def github_login() -> RedirectResponse:
+async def github_login(request: Request) -> RedirectResponse:
+    # Generate CSRF-protection state and store in session
+    state = secrets.token_urlsafe(32)
+    request.session["oauth_state"] = state
     return RedirectResponse(
-        f"{GITHUB_AUTHORIZE_URL}?client_id={settings.github_client_id}&scope=user:email"
+        f"{GITHUB_AUTHORIZE_URL}"
+        f"?client_id={settings.github_client_id}"
+        f"&scope=user:email"
+        f"&state={state}"
     )
 
 
 @router.get("/github/callback")
 async def github_callback(
     code: str,
+    state: str,
+    request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> RedirectResponse:
+    # Verify CSRF state to prevent OAuth hijacking
+    expected_state = request.session.pop("oauth_state", None)
+    if not expected_state or not secrets.compare_digest(expected_state, state):
+        raise HTTPException(status_code=400, detail="Invalid OAuth state")
+
     async with httpx.AsyncClient() as client:
         token_response = await client.post(
             GITHUB_TOKEN_URL,
@@ -51,15 +66,24 @@ async def github_callback(
         )
         github_user = user_response.json()
 
-    repo = UserRepository(session)
-    user = await repo.upsert_by_github_id(
+    user_repo = UserRepository(session)
+    user = await user_repo.upsert_by_github_id(
         github_id=str(github_user["id"]),
         name=github_user.get("name") or github_user["login"],
         email=github_user.get("email"),
         avatar_url=github_user.get("avatar_url"),
     )
 
-    token = _create_token(user.id)
+    # Ensure default org/project exists and user is a member
+    project_repo = ProjectRepository(session)
+    org, project = await project_repo.get_or_create_default(user)
+
+    # Issue JWT with org_id and project_id so dashboard loads immediately
+    token = _create_token(
+        user_id=str(user.id),
+        org_id=str(org.id),
+        project_id=str(project.id),
+    )
     return RedirectResponse(f"{settings.frontend_url}?token={token}")
 
 
@@ -76,12 +100,17 @@ async def get_me(
     return user
 
 
-def _create_token(user_id: str) -> str:
+def _create_token(user_id: str, org_id: str | None = None, project_id: str | None = None) -> str:
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=settings.jwt_expire_minutes
     )
+    payload: dict = {"sub": user_id, "exp": expire}
+    if org_id is not None:
+        payload["org_id"] = org_id
+    if project_id is not None:
+        payload["project_id"] = project_id
     return jwt.encode(
-        {"sub": user_id, "exp": expire},
+        payload,
         settings.jwt_secret,
         algorithm=settings.jwt_algorithm,
     )

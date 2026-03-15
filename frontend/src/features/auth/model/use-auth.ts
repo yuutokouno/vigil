@@ -1,28 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { User } from "@/src/entities/user/model/types";
 import { getMe } from "@/src/entities/user/api/user-api";
-import {
-  getToken,
-  setToken,
-  clearToken,
-} from "@/src/shared/lib/auth-token";
+import { getToken, clearToken } from "@/src/shared/lib/auth-token";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const tokenFromUrl = searchParams?.get("token");
-    if (tokenFromUrl) {
-      setToken(tokenFromUrl);
-      router.replace("/");
-    }
-  }, [searchParams, router]);
 
   useEffect(() => {
     const token = getToken();
