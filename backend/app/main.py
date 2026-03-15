@@ -18,9 +18,11 @@ from app.presentation.integrations import router as integrations_router
 from app.presentation.milestones import router as milestones_router
 from app.presentation.projects import router as projects_router
 from app.presentation.public import router as public_router
+from app.presentation.test_scenarios import router as test_scenarios_router
 from app.presentation.users import router as users_router
 from app.presentation.webhooks import router as webhooks_router
 from app.presentation.workflow_columns import router as workflow_columns_router
+from app.scheduler.test_reminder import send_test_checklist_reminders
 
 app = FastAPI(title="Vigil", description="Bug tracking dashboard for archaive")
 
@@ -49,6 +51,7 @@ app.include_router(integrations_router)
 app.include_router(milestones_router)
 app.include_router(projects_router)
 app.include_router(public_router)
+app.include_router(test_scenarios_router)
 app.include_router(users_router)
 app.include_router(webhooks_router)
 app.include_router(workflow_columns_router)
@@ -62,6 +65,10 @@ async def startup() -> None:
     register_connector("notion", NotionConnector())
     scheduler.add_job(poll_notion_integrations, "interval", minutes=5, id="notion_poll")
     scheduler.add_job(poll_hubspot_integrations, "interval", minutes=5, id="hubspot_poll")
+    # Daily at 10:00 UTC: send Slack reminders for test checklist progress (#18)
+    scheduler.add_job(
+        send_test_checklist_reminders, "cron", hour=10, minute=0, id="test_reminder"
+    )
     scheduler.start()
 
 

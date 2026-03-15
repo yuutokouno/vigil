@@ -310,3 +310,94 @@ class PublicBugResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ---- Test Scenarios ----
+
+class TestScenarioCreate(BaseModel):
+    title: str
+    description: str | None = None
+    feature_tag: str
+    steps_json: list[Any] = []
+
+
+class TestScenarioUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    feature_tag: str | None = None
+    steps_json: list[Any] | None = None
+
+
+class TestScenarioResponse(BaseModel):
+    id: str
+    project_id: str | None
+    title: str
+    description: str | None
+    feature_tag: str
+    steps_json: list[Any]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class TestScenarioPriorityResponse(BaseModel):
+    scenario: TestScenarioResponse
+    score: float
+    bug_count: int
+
+
+# ---- Releases ----
+
+class ReleaseStatus(str, Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    DONE = "done"
+
+
+class ReleaseCreate(BaseModel):
+    version: str
+    release_date: datetime | None = None
+    status: ReleaseStatus = ReleaseStatus.DRAFT
+
+
+class ReleaseUpdate(BaseModel):
+    version: str | None = None
+    release_date: datetime | None = None
+    status: ReleaseStatus | None = None
+
+
+class ReleaseResponse(BaseModel):
+    id: str
+    project_id: str | None
+    version: str
+    release_date: datetime | None
+    status: ReleaseStatus
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ---- Test Checklist Items ----
+
+class ChecklistItemUpdate(BaseModel):
+    is_checked: bool
+    checked_by: str | None = None
+
+
+class ChecklistItemResponse(BaseModel):
+    id: str
+    scenario_id: str
+    release_id: str
+    is_checked: bool
+    checked_by: str | None
+    checked_at: datetime | None
+    scenario: TestScenarioResponse | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class GenerateChecklistResponse(BaseModel):
+    generated: int
+    items: list[ChecklistItemResponse]
