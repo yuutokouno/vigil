@@ -100,8 +100,8 @@ class BugResponse(BaseModel):
     slack_message_url: str | None
     github_issue_url: str | None
     external_ref: str | None
-    version: str | None
-    discovery_stage: DiscoveryStage | None
+    version: str | None = None
+    discovery_stage: DiscoveryStage | None = None
     bug_number: int | None = None
     created_at: datetime
     updated_at: datetime
