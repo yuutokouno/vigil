@@ -90,6 +90,14 @@ class PostgresBugRepository(BugRepository):
         await self._session.commit()
         return True
 
+    async def get_by_bug_number(self, bug_number: int, project_id: str) -> BugResponse | None:
+        pid = uuid.UUID(project_id)
+        result = await self._session.execute(
+            select(Bug).where(Bug.bug_number == bug_number, Bug.project_id == pid)
+        )
+        bug = result.scalars().first()
+        return self._to_response(bug) if bug else None
+
     async def get_stats(self, project_id: str) -> BugStatsResponse:
         pid = uuid.UUID(project_id)
         total_result = await self._session.execute(
@@ -158,6 +166,7 @@ class PostgresBugRepository(BugRepository):
             milestone_id=str(bug.milestone_id) if bug.milestone_id else None,
             slack_message_url=bug.slack_message_url,
             github_issue_url=bug.github_issue_url,
+            github_pr_url=bug.github_pr_url,
             external_ref=bug.external_ref,
             created_at=bug.created_at,
             updated_at=bug.updated_at,

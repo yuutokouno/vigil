@@ -170,6 +170,7 @@ class Bug(Base):
     # External integrations
     slack_message_url: Mapped[str | None] = mapped_column(String(500))
     github_issue_url: Mapped[str | None] = mapped_column(String(500))
+    github_pr_url: Mapped[str | None] = mapped_column(String(500))
     notion_page_id: Mapped[str | None] = mapped_column(String(100))
     external_ref: Mapped[str | None] = mapped_column(String(500))
 
