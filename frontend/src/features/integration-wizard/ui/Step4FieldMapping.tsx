@@ -9,6 +9,8 @@ const VIGIL_FIELDS = [
   { key: "reported_by", label: "報告者" },
   { key: "severity", label: "重大度" },
   { key: "priority", label: "優先度" },
+  { key: "category", label: "カテゴリ" },
+  { key: "version", label: "バージョン" },
 ];
 
 type Props = {
