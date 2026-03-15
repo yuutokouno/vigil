@@ -19,19 +19,19 @@ router = APIRouter(prefix="/api/integrations", tags=["integrations"])
 
 @router.get("", response_model=list[IntegrationResponse])
 async def list_integrations(
-    _auth: ProjectAuthContext = Depends(verify_project_membership),
+    auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> list[IntegrationResponse]:
-    return await usecase.list_all()
+    return await usecase.list_all(auth.project_id)
 
 
 @router.post("", response_model=IntegrationResponse, status_code=201)
 async def create_integration(
     data: IntegrationCreate,
-    _auth: ProjectAuthContext = Depends(verify_project_membership),
+    auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> IntegrationResponse:
-    return await usecase.create(data)
+    return await usecase.create(data, auth.project_id)
 
 
 # Declare literal-segment routes before parameterized routes to ensure correct resolution
@@ -49,11 +49,11 @@ async def get_source_schema(
 @router.get("/{integration_id}", response_model=IntegrationResponse)
 async def get_integration(
     integration_id: str,
-    _auth: ProjectAuthContext = Depends(verify_project_membership),
+    auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> IntegrationResponse:
     try:
-        return await usecase.get(integration_id)
+        return await usecase.get(integration_id, auth.project_id)
     except IntegrationNotFoundError:
         raise HTTPException(status_code=404, detail="Integration not found")
 
@@ -62,11 +62,11 @@ async def get_integration(
 async def update_integration(
     integration_id: str,
     data: IntegrationUpdate,
-    _auth: ProjectAuthContext = Depends(verify_project_membership),
+    auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> IntegrationResponse:
     try:
-        return await usecase.update(integration_id, data)
+        return await usecase.update(integration_id, data, auth.project_id)
     except IntegrationNotFoundError:
         raise HTTPException(status_code=404, detail="Integration not found")
 
@@ -74,11 +74,11 @@ async def update_integration(
 @router.delete("/{integration_id}", status_code=204)
 async def delete_integration(
     integration_id: str,
-    _auth: ProjectAuthContext = Depends(verify_project_membership),
+    auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> None:
     try:
-        await usecase.delete(integration_id)
+        await usecase.delete(integration_id, auth.project_id)
     except IntegrationNotFoundError:
         raise HTTPException(status_code=404, detail="Integration not found")
 
@@ -86,11 +86,11 @@ async def delete_integration(
 @router.post("/{integration_id}/test", response_model=TestConnectionResponse)
 async def test_integration(
     integration_id: str,
-    _auth: ProjectAuthContext = Depends(verify_project_membership),
+    auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> TestConnectionResponse:
     try:
-        ok = await usecase.test_connection(integration_id)
+        ok = await usecase.test_connection(integration_id, auth.project_id)
         return TestConnectionResponse(ok=ok)
     except IntegrationNotFoundError:
         raise HTTPException(status_code=404, detail="Integration not found")
@@ -100,10 +100,10 @@ async def test_integration(
 async def list_integration_events(
     integration_id: str,
     limit: int = Query(50, ge=1, le=200),
-    _auth: ProjectAuthContext = Depends(verify_project_membership),
+    auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: IntegrationUsecase = Depends(get_integration_usecase),
 ) -> list[IntegrationEventResponse]:
     try:
-        return await usecase.list_events(integration_id, limit)
+        return await usecase.list_events(integration_id, auth.project_id, limit)
     except IntegrationNotFoundError:
         raise HTTPException(status_code=404, detail="Integration not found")

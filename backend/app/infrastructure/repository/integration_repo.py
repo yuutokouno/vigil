@@ -18,7 +18,7 @@ class IntegrationRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def create(self, data: IntegrationCreate) -> IntegrationResponse:
+    async def create(self, data: IntegrationCreate, project_id: str) -> IntegrationResponse:
         enc = encrypt_credentials(data.credentials)
         integration = Integration(
             name=data.name,
@@ -27,30 +27,64 @@ class IntegrationRepository:
             credentials_enc=enc,
             trigger_rules=data.trigger_rules,
             field_mappings=data.field_mappings,
+            project_id=uuid.UUID(project_id),
         )
         self._session.add(integration)
         await self._session.commit()
         await self._session.refresh(integration)
         return self._to_response(integration)
 
-    async def get_by_id(self, integration_id: str) -> Integration | None:
-        return await self._session.get(Integration, uuid.UUID(integration_id))
+    async def get_by_id(self, integration_id: str, project_id: str) -> Integration | None:
+        """Return the integration only if it belongs to the given project."""
+        integration = await self._session.get(Integration, uuid.UUID(integration_id))
+        if integration is None or str(integration.project_id) != project_id:
+            return None
+        return integration
 
-    async def get_response_by_id(self, integration_id: str) -> IntegrationResponse | None:
-        integration = await self.get_by_id(integration_id)
+    async def get_response_by_id(
+        self, integration_id: str, project_id: str
+    ) -> IntegrationResponse | None:
+        integration = await self.get_by_id(integration_id, project_id)
         if integration is None:
             return None
         return self._to_response(integration)
 
-    async def list_all(self) -> list[IntegrationResponse]:
-        result = await self._session.execute(select(Integration))
+    async def list_all(self, project_id: str) -> list[IntegrationResponse]:
+        """Return only integrations that belong to the given project."""
+        result = await self._session.execute(
+            select(Integration).where(
+                Integration.project_id == uuid.UUID(project_id)
+            )
+        )
         return [self._to_response(i) for i in result.scalars().all()]
 
     async def list_active_by_source(self, source_type: str) -> list[Integration]:
+        """Return all active integrations for a source type across all projects.
+
+        Used by polling schedulers and webhook handlers that need to iterate
+        every integration to match incoming data before the project is known.
+        """
         result = await self._session.execute(
             select(Integration).where(
                 Integration.source_type == source_type,
                 Integration.is_active.is_(True),
+            )
+        )
+        return list(result.scalars().all())
+
+    async def list_active_by_source_for_project(
+        self, source_type: str, project_id: str
+    ) -> list[Integration]:
+        """Return active integrations for a source type scoped to a specific project.
+
+        Used when the project context is already known (e.g. outbound notifications
+        triggered from a project-scoped request).
+        """
+        result = await self._session.execute(
+            select(Integration).where(
+                Integration.source_type == source_type,
+                Integration.is_active.is_(True),
+                Integration.project_id == uuid.UUID(project_id),
             )
         )
         return list(result.scalars().all())
