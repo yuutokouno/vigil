@@ -22,32 +22,34 @@ class IntegrationUsecase:
     def __init__(self, repository: IntegrationRepository) -> None:
         self._repository = repository
 
-    async def create(self, data: IntegrationCreate) -> IntegrationResponse:
-        return await self._repository.create(data)
+    async def create(self, data: IntegrationCreate, project_id: str) -> IntegrationResponse:
+        return await self._repository.create(data, project_id)
 
-    async def list_all(self) -> list[IntegrationResponse]:
-        return await self._repository.list_all()
+    async def list_all(self, project_id: str) -> list[IntegrationResponse]:
+        return await self._repository.list_all(project_id)
 
-    async def get(self, integration_id: str) -> IntegrationResponse:
-        response = await self._repository.get_response_by_id(integration_id)
+    async def get(self, integration_id: str, project_id: str) -> IntegrationResponse:
+        response = await self._repository.get_response_by_id(integration_id, project_id)
         if response is None:
             raise IntegrationNotFoundError(integration_id)
         return response
 
-    async def update(self, integration_id: str, data: IntegrationUpdate) -> IntegrationResponse:
-        integration = await self._repository.get_by_id(integration_id)
+    async def update(
+        self, integration_id: str, data: IntegrationUpdate, project_id: str
+    ) -> IntegrationResponse:
+        integration = await self._repository.get_by_id(integration_id, project_id)
         if integration is None:
             raise IntegrationNotFoundError(integration_id)
         return await self._repository.update(integration, data)
 
-    async def delete(self, integration_id: str) -> None:
-        integration = await self._repository.get_by_id(integration_id)
+    async def delete(self, integration_id: str, project_id: str) -> None:
+        integration = await self._repository.get_by_id(integration_id, project_id)
         if integration is None:
             raise IntegrationNotFoundError(integration_id)
         await self._repository.delete(integration)
 
-    async def test_connection(self, integration_id: str) -> bool:
-        integration = await self._repository.get_by_id(integration_id)
+    async def test_connection(self, integration_id: str, project_id: str) -> bool:
+        integration = await self._repository.get_by_id(integration_id, project_id)
         if integration is None:
             raise IntegrationNotFoundError(integration_id)
         if integration.credentials_enc is None:
@@ -65,9 +67,9 @@ class IntegrationUsecase:
         return await connector.fetch_schema(credentials)
 
     async def list_events(
-        self, integration_id: str, limit: int = 50
+        self, integration_id: str, project_id: str, limit: int = 50
     ) -> list[IntegrationEventResponse]:
-        integration = await self._repository.get_by_id(integration_id)
+        integration = await self._repository.get_by_id(integration_id, project_id)
         if integration is None:
             raise IntegrationNotFoundError(integration_id)
         return await self._repository.list_events(integration_id, limit)

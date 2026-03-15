@@ -137,10 +137,18 @@ async def poll_hubspot_integrations() -> None:
                     if not await connector.should_process(ticket, integration.trigger_rules or {}):
                         continue
 
+                    if integration.project_id is None:
+                        logger.warning(
+                            "HubSpot integration %s has no project_id; skipping ticket %s",
+                            integration.id,
+                            raw_ticket_id,
+                        )
+                        continue
+
                     bug_create = await connector.transform(
                         ticket, integration.field_mappings or []
                     )
-                    bug = await bug_usecase.create_bug(bug_create)
+                    bug = await bug_usecase.create_bug(bug_create, str(integration.project_id))
                     await integration_repo.log_event(
                         str(integration.id),
                         "created",

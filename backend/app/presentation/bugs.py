@@ -101,16 +101,23 @@ async def update_bug(
         and existing.status != "closed"
         and updated.github_issue_url
     ):
-        await _notify_github_issue_resolved(updated.github_issue_url, integration_repo)
+        await _notify_github_issue_resolved(
+            updated.github_issue_url, integration_repo, _auth.project_id
+        )
 
     return updated
 
 
 async def _notify_github_issue_resolved(
-    issue_url: str, integration_repo: IntegrationRepository
+    issue_url: str, integration_repo: IntegrationRepository, project_id: str
 ) -> None:
-    """Add 'resolved' label and post a comment to the linked GitHub Issue."""
-    integrations = await integration_repo.list_active_by_source("github")
+    """Add 'resolved' label and post a comment to the linked GitHub Issue.
+
+    Scoped to the current project so credentials from other projects are never used.
+    """
+    integrations = await integration_repo.list_active_by_source_for_project(
+        "github", project_id
+    )
     if not integrations:
         return
     try:
