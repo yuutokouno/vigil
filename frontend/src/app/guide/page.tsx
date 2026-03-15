@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   Bug,
@@ -74,6 +75,21 @@ function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
   );
 }
 
+function Screenshot({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="my-4 overflow-hidden rounded-lg border border-border shadow-md">
+      <Image
+        src={src}
+        alt={alt}
+        width={1280}
+        height={720}
+        className="w-full"
+        unoptimized
+      />
+    </div>
+  );
+}
+
 function SectionHeading({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
   return (
     <h2 className="mb-3 flex items-center gap-2 border-b border-border pb-2 text-[15px] font-semibold">
@@ -131,6 +147,7 @@ export default function GuidePage() {
         <p className="mb-3 text-[12px] text-muted-foreground">
           バグの一覧を確認・管理するメインページです。ステータスのサマリーカードと、フィルター付きリスト／ボードビューを切り替えられます。
         </p>
+        <Screenshot src="/guide/issues.png" alt="Issues ページ" />
         <DataTable
           headers={["機能", "操作方法"]}
           rows={[
@@ -149,6 +166,7 @@ export default function GuidePage() {
       {/* ── バグ登録 ─────────────────────────────────── */}
       <section id="new-bug">
         <SectionHeading icon={Bug}>バグを登録する</SectionHeading>
+        <Screenshot src="/guide/new-bug.png" alt="バグ登録フォーム" />
         <DataTable
           headers={["フィールド", "説明", "必須"]}
           rows={[
@@ -172,6 +190,7 @@ export default function GuidePage() {
       {/* ── Board ────────────────────────────────────── */}
       <section id="board">
         <SectionHeading icon={Kanban}>Board（カンバンボード）</SectionHeading>
+        <Screenshot src="/guide/board.png" alt="カンバンボード" />
         <DataTable
           headers={["操作", "方法"]}
           rows={[
@@ -185,6 +204,7 @@ export default function GuidePage() {
       {/* ── Milestones ───────────────────────────────── */}
       <section id="milestones">
         <SectionHeading icon={Milestone}>Milestones</SectionHeading>
+        <Screenshot src="/guide/milestones.png" alt="Milestones" />
         <DataTable
           headers={["操作", "方法"]}
           rows={[
@@ -199,6 +219,7 @@ export default function GuidePage() {
       {/* ── テストシナリオ ───────────────────────────── */}
       <section id="scenarios">
         <SectionHeading icon={FlaskConical}>テストシナリオ</SectionHeading>
+        <Screenshot src="/guide/scenarios.png" alt="テストシナリオ" />
         <p className="mb-3 text-[12px] text-muted-foreground">
           回帰テスト等の手動テストシナリオを管理します。バグの深刻度・発見段階から優先スコアを自動計算します。
         </p>
@@ -237,6 +258,7 @@ export default function GuidePage() {
       {/* ── リリース管理 ─────────────────────────────── */}
       <section id="releases">
         <SectionHeading icon={PackageCheck}>リリース管理</SectionHeading>
+        <Screenshot src="/guide/releases.png" alt="リリース管理" />
         <DataTable
           headers={["ステータス", "意味"]}
           rows={[
@@ -258,6 +280,7 @@ export default function GuidePage() {
       {/* ── Analytics ────────────────────────────────── */}
       <section id="analytics">
         <SectionHeading icon={BarChart2}>Analytics</SectionHeading>
+        <Screenshot src="/guide/analytics.png" alt="Analytics" />
         <DataTable
           headers={["機能", "説明"]}
           rows={[
@@ -275,6 +298,7 @@ export default function GuidePage() {
       {/* ── Settings ─────────────────────────────────── */}
       <section id="settings">
         <SectionHeading icon={Settings}>ワークフロー設定</SectionHeading>
+        <Screenshot src="/guide/settings.png" alt="ワークフロー設定" />
         <DataTable
           headers={["操作", "方法"]}
           rows={[
@@ -292,6 +316,7 @@ export default function GuidePage() {
       {/* ── 連携管理 ─────────────────────────────────── */}
       <section id="integrations">
         <SectionHeading icon={Slack}>連携管理</SectionHeading>
+        <Screenshot src="/guide/integrations.png" alt="連携管理" />
         <DataTable
           headers={["連携", "できること"]}
           rows={[
@@ -342,6 +367,7 @@ export default function GuidePage() {
       {/* ── 外部バグ報告 ─────────────────────────────── */}
       <section id="report">
         <SectionHeading icon={Globe}>外部バグ報告</SectionHeading>
+        <Screenshot src="/guide/report.png" alt="外部バグ報告フォーム" />
         <p className="mb-3 text-[12px] text-muted-foreground">
           GitHub アカウントを持たないユーザーでもバグを報告できる公開フォームです。
         </p>
