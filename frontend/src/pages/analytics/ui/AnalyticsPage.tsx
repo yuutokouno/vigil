@@ -5,15 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/src/shared/ui";
 import {
   fetchAnalytics,
   fetchAnalyticsHeatmap,
+  fetchDiscoveryStages,
 } from "@/src/entities/analytics/api/analytics-api";
 import type {
   AnalyticsResponse,
+  DiscoveryStagesResponse,
   HeatmapResponse,
 } from "@/src/entities/analytics/model/types";
 import { BugTrendChart } from "./BugTrendChart";
 import { SeverityChart } from "./SeverityChart";
 import { AssigneeTable } from "./AssigneeTable";
 import { BugHeatmap } from "./BugHeatmap";
+import { DiscoveryStageChart } from "./DiscoveryStageChart";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -47,6 +50,7 @@ export function AnalyticsPage() {
   const [discoveryStage, setDiscoveryStage] = useState("");
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapResponse | null>(null);
+  const [discoveryStages, setDiscoveryStages] = useState<DiscoveryStagesResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
@@ -54,7 +58,7 @@ export function AnalyticsPage() {
     setIsLoading(true);
     setIsError(false);
     try {
-      const [res, heatRes] = await Promise.all([
+      const [res, heatRes, stagesRes] = await Promise.all([
         fetchAnalytics(
           period,
           compareEnabled ? "prev" : undefined,
@@ -64,14 +68,17 @@ export function AnalyticsPage() {
           },
         ),
         fetchAnalyticsHeatmap(period),
+        fetchDiscoveryStages(period),
       ]);
       setData(res);
       setHeatmap(heatRes);
+      setDiscoveryStages(stagesRes);
     } catch (err) {
       console.error("Failed to fetch analytics:", err);
       setIsError(true);
       setData(null);
       setHeatmap(null);
+      setDiscoveryStages(null);
     } finally {
       setIsLoading(false);
     }
@@ -253,6 +260,24 @@ export function AnalyticsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Discovery stage breakdown */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[13px]">
+                発見ステージ別 バグ数
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {discoveryStages ? (
+                <DiscoveryStageChart stages={discoveryStages.stages} />
+              ) : (
+                <p className="py-4 text-center text-[12px] text-muted-foreground">
+                  データなし
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </>
       ) : null}
     </div>

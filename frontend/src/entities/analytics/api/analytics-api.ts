@@ -1,5 +1,9 @@
 import { apiClient } from "@/src/shared/api/client";
-import type { AnalyticsResponse, HeatmapResponse } from "../model/types";
+import type {
+  AnalyticsResponse,
+  DiscoveryStagesResponse,
+  HeatmapResponse,
+} from "../model/types";
 
 type AnalyticsFilters = {
   version?: string;
@@ -27,6 +31,14 @@ export async function fetchAnalyticsHeatmap(
   period: "7d" | "30d" | "90d" = "30d",
 ): Promise<HeatmapResponse> {
   return apiClient<HeatmapResponse>("/api/analytics/heatmap", {
+    params: { period },
+  });
+}
+
+export async function fetchDiscoveryStages(
+  period: "7d" | "30d" | "90d" = "30d",
+): Promise<DiscoveryStagesResponse> {
+  return apiClient<DiscoveryStagesResponse>("/api/analytics/discovery-stages", {
     params: { period },
   });
 }

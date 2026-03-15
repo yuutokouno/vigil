@@ -42,3 +42,13 @@ export type HeatmapResponse = {
   categories: string[];
   cells: HeatmapCell[];
 };
+
+export type DiscoveryStageCount = {
+  stage: string;
+  count: number;
+};
+
+export type DiscoveryStagesResponse = {
+  period: string;
+  stages: DiscoveryStageCount[];
+};

@@ -59,6 +59,16 @@ class HeatmapResponse(BaseModel):
     cells: list[HeatmapCell]
 
 
+class DiscoveryStageCount(BaseModel):
+    stage: str
+    count: int
+
+
+class DiscoveryStagesResponse(BaseModel):
+    period: str
+    stages: list[DiscoveryStageCount]
+
+
 def _period_days(period: Literal["7d", "30d", "90d"]) -> int:
     return {"7d": 7, "30d": 30, "90d": 90}[period]
 
@@ -281,3 +291,33 @@ async def get_heatmap(
         categories=sorted(categories_set),
         cells=cells,
     )
+
+
+@router.get("/discovery-stages", response_model=DiscoveryStagesResponse)
+async def get_discovery_stages(
+    period: Literal["7d", "30d", "90d"] = Query("30d"),
+    _auth: ProjectAuthContext = Depends(verify_project_membership),
+    session: AsyncSession = Depends(get_session),
+) -> DiscoveryStagesResponse:
+    """Return bug counts grouped by discovery_stage for the given period."""
+    pid = uuid.UUID(_auth.project_id)
+    days = _period_days(period)
+    now = datetime.now(timezone.utc)
+    start = now - timedelta(days=days)
+
+    rows = await session.execute(
+        select(Bug.discovery_stage, func.count().label("cnt"))
+        .where(
+            Bug.project_id == pid,
+            Bug.created_at >= start,
+            Bug.created_at <= now,
+        )
+        .group_by(Bug.discovery_stage)
+        .order_by(func.count().desc())
+    )
+
+    stages = [
+        DiscoveryStageCount(stage=row.discovery_stage or "unknown", count=row.cnt)
+        for row in rows
+    ]
+    return DiscoveryStagesResponse(period=period, stages=stages)
