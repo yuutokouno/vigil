@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timedelta, date, timezone
 from typing import Literal
 
@@ -50,7 +51,14 @@ def _period_days(period: Literal["7d", "30d", "90d"]) -> int:
     return {"7d": 7, "30d": 30, "90d": 90}[period]
 
 
-async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) -> dict:
+async def _compute_stats(
+    session: AsyncSession,
+    start: datetime,
+    end: datetime,
+    project_id: str,
+) -> dict:
+    pid = uuid.UUID(project_id)
+
     # Daily created/closed
     daily_map: dict[date, dict] = {}
     delta = end.date() - start.date()
@@ -60,7 +68,11 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
 
     created_rows = await session.execute(
         select(cast(func.date(Bug.created_at), Date).label("d"), func.count().label("c"))
-        .where(Bug.created_at >= start, Bug.created_at <= end)
+        .where(
+            Bug.project_id == pid,
+            Bug.created_at >= start,
+            Bug.created_at <= end,
+        )
         .group_by(func.date(Bug.created_at))
     )
     for row in created_rows:
@@ -69,7 +81,11 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
 
     closed_rows = await session.execute(
         select(cast(func.date(Bug.closed_at), Date).label("d"), func.count().label("c"))
-        .where(Bug.closed_at >= start, Bug.closed_at <= end)
+        .where(
+            Bug.project_id == pid,
+            Bug.closed_at >= start,
+            Bug.closed_at <= end,
+        )
         .group_by(func.date(Bug.closed_at))
     )
     for row in closed_rows:
@@ -83,6 +99,7 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
                 func.extract("epoch", Bug.closed_at - Bug.created_at) / 3600
             )
         ).where(
+            Bug.project_id == pid,
             Bug.closed_at >= start,
             Bug.closed_at <= end,
             Bug.closed_at > Bug.created_at,
@@ -93,7 +110,11 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
     # Severity breakdown (bugs created in period)
     sev_rows = await session.execute(
         select(Bug.severity, func.count().label("c"))
-        .where(Bug.created_at >= start, Bug.created_at <= end)
+        .where(
+            Bug.project_id == pid,
+            Bug.created_at >= start,
+            Bug.created_at <= end,
+        )
         .group_by(Bug.severity)
     )
     by_severity = {row.severity: row.c for row in sev_rows}
@@ -102,6 +123,7 @@ async def _compute_stats(session: AsyncSession, start: datetime, end: datetime) 
     assignee_rows = await session.execute(
         select(Bug.assigned_to, func.count().label("c"))
         .where(
+            Bug.project_id == pid,
             Bug.closed_at >= start,
             Bug.closed_at <= end,
             Bug.assigned_to.isnot(None),
@@ -129,19 +151,21 @@ async def get_analytics(
     _auth: ProjectAuthContext = Depends(verify_project_membership),
     session: AsyncSession = Depends(get_session),
 ) -> AnalyticsResponse:
+    pid = _auth.project_id
     days = _period_days(period)
     now = datetime.now(timezone.utc)
     current_start = now - timedelta(days=days)
 
-    current = await _compute_stats(session, current_start, now)
+    current = await _compute_stats(session, current_start, now, pid)
 
     previous = None
     if compare_to == "prev":
         prev_end = current_start
         prev_start = prev_end - timedelta(days=days)
-        previous = await _compute_stats(session, prev_start, prev_end)
+        previous = await _compute_stats(session, prev_start, prev_end, pid)
 
-    # Active milestones with bug counts
+    # Active milestones with bug counts, scoped to project
+    pid_uuid = uuid.UUID(pid)
     milestone_rows = await session.execute(
         select(
             Milestone.id,
@@ -150,7 +174,7 @@ async def get_analytics(
             func.count().filter(Bug.status == "closed").label("closed_count"),
         )
         .outerjoin(Bug, Bug.milestone_id == Milestone.id)
-        .where(Milestone.status == "active")
+        .where(Milestone.project_id == pid_uuid, Milestone.status == "active")
         .group_by(Milestone.id, Milestone.title)
     )
 

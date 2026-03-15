@@ -23,7 +23,7 @@ async def list_workflow_columns(
     _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> list[WorkflowColumnResponse]:
-    return await usecase.list_all()
+    return await usecase.list_all(_auth.project_id)
 
 
 @router.post("", response_model=WorkflowColumnResponse, status_code=201)
@@ -33,7 +33,7 @@ async def create_workflow_column(
     usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> WorkflowColumnResponse:
     try:
-        return await usecase.create(data)
+        return await usecase.create(data, _auth.project_id)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except IntegrityError:
@@ -48,7 +48,7 @@ async def update_workflow_column(
     usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> WorkflowColumnResponse:
     try:
-        return await usecase.update(column_id, data)
+        return await usecase.update(column_id, data, _auth.project_id)
     except WorkflowColumnNotFoundError:
         raise HTTPException(status_code=404, detail="Workflow column not found")
     except WorkflowColumnFixedError:
@@ -62,7 +62,7 @@ async def delete_workflow_column(
     usecase: WorkflowColumnUsecase = Depends(get_workflow_column_usecase),
 ) -> None:
     try:
-        await usecase.delete(column_id)
+        await usecase.delete(column_id, _auth.project_id)
     except WorkflowColumnNotFoundError:
         raise HTTPException(status_code=404, detail="Workflow column not found")
     except WorkflowColumnFixedError:

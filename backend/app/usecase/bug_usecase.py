@@ -21,20 +21,24 @@ class BugUsecase:
     def __init__(self, repository: BugRepository) -> None:
         self._repository = repository
 
-    async def create_bug(self, bug: BugCreate) -> BugResponse:
-        return await self._repository.create(bug)
+    async def create_bug(self, bug: BugCreate, project_id: str) -> BugResponse:
+        return await self._repository.create(bug, project_id)
 
-    async def get_bug(self, bug_id: str) -> BugResponse:
-        bug = await self._repository.get_by_id(bug_id)
+    async def get_bug(self, bug_id: str, project_id: str) -> BugResponse:
+        bug = await self._repository.get_by_id(bug_id, project_id)
         if bug is None:
             raise BugNotFoundError(bug_id)
         return bug
 
-    async def list_bugs(self, params: BugListParams) -> BugListResponse:
-        return await self._repository.list_bugs(params)
+    async def list_bugs(
+        self, params: BugListParams, project_id: str
+    ) -> BugListResponse:
+        return await self._repository.list_bugs(params, project_id)
 
-    async def update_bug(self, bug_id: str, update: BugUpdate) -> BugResponse:
-        existing = await self._repository.get_by_id(bug_id)
+    async def update_bug(
+        self, bug_id: str, update: BugUpdate, project_id: str
+    ) -> BugResponse:
+        existing = await self._repository.get_by_id(bug_id, project_id)
         if existing is None:
             raise BugNotFoundError(bug_id)
 
@@ -49,15 +53,15 @@ class BugUsecase:
                 update_data["closed_at"] = None
                 update = BugUpdate.model_validate(update_data)
 
-        result = await self._repository.update(bug_id, update)
+        result = await self._repository.update(bug_id, update, project_id)
         if result is None:
             raise BugNotFoundError(bug_id)
         return result
 
-    async def delete_bug(self, bug_id: str) -> None:
-        deleted = await self._repository.delete(bug_id)
+    async def delete_bug(self, bug_id: str, project_id: str) -> None:
+        deleted = await self._repository.delete(bug_id, project_id)
         if not deleted:
             raise BugNotFoundError(bug_id)
 
-    async def get_stats(self) -> BugStatsResponse:
-        return await self._repository.get_stats()
+    async def get_stats(self, project_id: str) -> BugStatsResponse:
+        return await self._repository.get_stats(project_id)

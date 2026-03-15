@@ -14,7 +14,7 @@ async def create_milestone(
     _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: MilestoneUsecase = Depends(get_milestone_usecase),
 ) -> MilestoneResponse:
-    return await usecase.create(data)
+    return await usecase.create(data, _auth.project_id)
 
 
 @router.get("", response_model=list[MilestoneResponse])
@@ -22,7 +22,7 @@ async def list_milestones(
     _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: MilestoneUsecase = Depends(get_milestone_usecase),
 ) -> list[MilestoneResponse]:
-    return await usecase.list_all()
+    return await usecase.list_all(_auth.project_id)
 
 
 @router.get("/{milestone_id}", response_model=MilestoneResponse)
@@ -32,7 +32,7 @@ async def get_milestone(
     usecase: MilestoneUsecase = Depends(get_milestone_usecase),
 ) -> MilestoneResponse:
     try:
-        return await usecase.get(milestone_id)
+        return await usecase.get(milestone_id, _auth.project_id)
     except MilestoneNotFoundError:
         raise HTTPException(status_code=404, detail="Milestone not found")
 
@@ -45,7 +45,7 @@ async def update_milestone(
     usecase: MilestoneUsecase = Depends(get_milestone_usecase),
 ) -> MilestoneResponse:
     try:
-        return await usecase.update(milestone_id, data)
+        return await usecase.update(milestone_id, data, _auth.project_id)
     except MilestoneNotFoundError:
         raise HTTPException(status_code=404, detail="Milestone not found")
 
@@ -57,6 +57,6 @@ async def delete_milestone(
     usecase: MilestoneUsecase = Depends(get_milestone_usecase),
 ) -> None:
     try:
-        await usecase.delete(milestone_id)
+        await usecase.delete(milestone_id, _auth.project_id)
     except MilestoneNotFoundError:
         raise HTTPException(status_code=404, detail="Milestone not found")

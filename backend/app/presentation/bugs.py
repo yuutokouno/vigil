@@ -23,8 +23,7 @@ async def create_bug(
     _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
-    # TODO(#48): inject _auth.project_id into bug_create
-    return await usecase.create_bug(bug)
+    return await usecase.create_bug(bug, _auth.project_id)
 
 
 @router.get("", response_model=BugListResponse)
@@ -50,8 +49,7 @@ async def list_bugs(
         page=page,
         limit=limit,
     )
-    # TODO(#48): pass _auth.project_id to usecase for project-scoped filtering
-    return await usecase.list_bugs(params)
+    return await usecase.list_bugs(params, _auth.project_id)
 
 
 @router.get("/stats", response_model=BugStatsResponse)
@@ -59,7 +57,7 @@ async def get_stats(
     _auth: ProjectAuthContext = Depends(verify_project_membership),
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
-    return await usecase.get_stats()
+    return await usecase.get_stats(_auth.project_id)
 
 
 @router.get("/{bug_id}", response_model=BugResponse)
@@ -69,7 +67,7 @@ async def get_bug(
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     try:
-        return await usecase.get_bug(bug_id)
+        return await usecase.get_bug(bug_id, _auth.project_id)
     except BugNotFoundError:
         raise HTTPException(status_code=404, detail="Bug not found")
 
@@ -82,7 +80,7 @@ async def update_bug(
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     try:
-        return await usecase.update_bug(bug_id, bug)
+        return await usecase.update_bug(bug_id, bug, _auth.project_id)
     except BugNotFoundError:
         raise HTTPException(status_code=404, detail="Bug not found")
 
@@ -94,6 +92,6 @@ async def delete_bug(
     usecase: BugUsecase = Depends(get_bug_usecase),
 ):
     try:
-        await usecase.delete_bug(bug_id)
+        await usecase.delete_bug(bug_id, _auth.project_id)
     except BugNotFoundError:
         raise HTTPException(status_code=404, detail="Bug not found")
